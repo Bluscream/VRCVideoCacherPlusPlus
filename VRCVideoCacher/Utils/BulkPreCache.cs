@@ -15,8 +15,8 @@ public class BulkPreCache
     // LastModified and Size are optional
     // e.g. JSON response
     // [{"fileName":"--QOnlGckhs.mp4","url":"https:\/\/example.com\/--QOnlGckhs.mp4","lastModified":1631653260,"size":124029113},...]
-    // ReSharper disable once ClassNeverInstantiated.Local
-    private class DownloadInfo(string fileName, string url, double lastModified, long size)
+    // ReSharper disable once ClassNeverInstantiated.Global
+    internal class DownloadInfo(string fileName, string url, double lastModified, long size)
     {
         public string FileName { get; set; } = fileName;
         public string Url { get; set; } = url;
@@ -28,25 +28,52 @@ public class BulkPreCache
         public string FilePath => Path.Join(CacheManager.CachePath, FileName);
     }
 
-    public static async Task DownloadFileList()
+    public static Task DownloadFileList() =>
+        ProcessManifests(ConfigManager.Config.PreCacheUrls, FetchManifest, DownloadVideos);
+
+    // Returns null when the manifest could not be fetched.
+    private static async Task<string?> FetchManifest(string url)
     {
-        foreach (var url in ConfigManager.Config.PreCacheUrls)
+        using var response = await HttpClient.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadAsStringAsync();
+
+        Log.Information("Failed to download {Url}: {ResponseStatusCode}", url, response.StatusCode);
+        return null;
+    }
+
+    // Every failure mode here is per-manifest: one unreachable host, one 404, or one
+    // corrupt payload must not stop the manifests after it in the list.
+    // Fetch and download are injected so that loop behaviour can be tested without network.
+    internal static async Task ProcessManifests(
+        IEnumerable<string> urls,
+        Func<string, Task<string?>> fetchManifest,
+        Func<List<DownloadInfo>, Task> downloadFiles)
+    {
+        foreach (var url in urls)
         {
-            using var response = await HttpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
+            List<DownloadInfo>? files;
+            try
             {
-                Log.Information("Failed to download {Url}: {ResponseStatusCode}", url, response.StatusCode);
+                var content = await fetchManifest(url);
+                if (content == null)
+                    continue;
+
+                files = JsonConvert.DeserializeObject<List<DownloadInfo>>(content);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning("Failed to read manifest {Url}: {Error}", url, ex.Message);
                 continue;
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var files = JsonConvert.DeserializeObject<List<DownloadInfo>>(content);
             if (files == null || files.Count == 0)
             {
                 Log.Information("No files to download for {URL}", url);
                 continue;
             }
-            await DownloadVideos(files);
+
+            await downloadFiles(files);
             Log.Information("All {Count} files for {URL} are up to date.", files.Count, url);
         }
     }
