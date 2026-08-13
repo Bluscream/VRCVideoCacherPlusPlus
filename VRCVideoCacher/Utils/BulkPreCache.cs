@@ -36,7 +36,7 @@ public class BulkPreCache
             if (!response.IsSuccessStatusCode)
             {
                 Log.Information("Failed to download {Url}: {ResponseStatusCode}", url, response.StatusCode);
-                return;
+                continue;
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -44,7 +44,7 @@ public class BulkPreCache
             if (files == null || files.Count == 0)
             {
                 Log.Information("No files to download for {URL}", url);
-                return;
+                continue;
             }
             await DownloadVideos(files);
             Log.Information("All {Count} files for {URL} are up to date.", files.Count, url);
