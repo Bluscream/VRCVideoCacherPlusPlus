@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.Database;
+using VRCVideoCacher.Utils;
 
 namespace VRCVideoCacher.ViewModels;
 
@@ -50,33 +51,22 @@ public partial class StatsViewModel : ViewModelBase
     private void Refresh()
     {
         var stats = DatabaseManager.GetAllVideoWatchStats();
-        var totalPlays = DatabaseManager.GetPlayHistoryCount();
-        var cacheHits = stats.Values.Sum(s => s.WatchCount);
-
-        // Size is only known for videos still on disk. A hit on a since-evicted video
-        // really did save bandwidth, but we have no size to attribute to it — so the
-        // total is a floor, not an exact figure.
         var sizeByVideoId = CacheManager.GetCachedAssets()
             .ToDictionary(
                 kvp => Path.GetFileNameWithoutExtension(kvp.Key),
                 kvp => kvp.Value.Size);
 
-        long bytesSaved = 0;
-        var uncountedHits = 0;
-        foreach (var (videoId, stat) in stats)
-        {
-            if (sizeByVideoId.TryGetValue(videoId, out var size))
-                bytesSaved += size * stat.WatchCount;
-            else
-                uncountedHits += stat.WatchCount;
-        }
+        var result = CacheStats.Compute(
+            stats.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.WatchCount),
+            sizeByVideoId,
+            DatabaseManager.GetPlayHistoryCount());
 
-        TotalPlaysText = totalPlays.ToString("N0");
-        CacheHitsText = cacheHits.ToString("N0");
-        HitRateText = totalPlays > 0 ? $"{(double)cacheHits / totalPlays:P1}" : "-";
-        BytesSavedText = FormatSize(bytesSaved);
-        BytesSavedCaveat = uncountedHits > 0
-            ? string.Format(Localizer.Get("BytesSavedCaveatFormat"), uncountedHits)
+        TotalPlaysText = result.TotalPlays.ToString("N0");
+        CacheHitsText = result.CacheHits.ToString("N0");
+        HitRateText = result.HitRate is { } rate ? $"{rate:P1}" : "-";
+        BytesSavedText = CacheStats.FormatSize(result.BytesSaved);
+        BytesSavedCaveat = result.UncountedHits > 0
+            ? string.Format(Localizer.Get("BytesSavedCaveatFormat"), result.UncountedHits)
             : string.Empty;
 
         TopVideos.Clear();
@@ -91,13 +81,5 @@ public partial class StatsViewModel : ViewModelBase
                 IsStillCached = sizeByVideoId.ContainsKey(videoId)
             });
         }
-    }
-
-    private static string FormatSize(long bytes)
-    {
-        string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
-        if (bytes == 0) return "0 B";
-        var mag = Math.Min((int)Math.Log(bytes, 1024), suffixes.Length - 1);
-        return $"{bytes / Math.Pow(1024, mag):N2} {suffixes[mag]}";
     }
 }
