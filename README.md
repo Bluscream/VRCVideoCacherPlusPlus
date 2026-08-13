@@ -35,6 +35,18 @@ Download or clone this repo so you have the `BrowserExtension/` folder locally.
 VRCVideoCacherPlus helps VRChat videos play. Sometimes, YouTube blocks or throttles videos when a user client does not provide cookies. This app gives YouTube the cookies while you play VRChat so that videos play smoothly and in high definition. This app also downloads videos intelligently if you turn that setting on, so that videos you play often (e.g. VRDancing) don't need to download from the internet again. You can manage the video cache, change the background download speed, and delay the video download (so that you're not downloading two video files or more at the same time).
 VRCVideoCacherPlus is based on VRCVideoCacher and adds many improvements, like HLS and streaming playlist (.m3u8) video support.
 
+![Main screen](docs/screenshots/main-info.png)
+*Main screen — status, cache size, and what the app is doing right now.*
+
+![Download speed and cache delay settings](docs/screenshots/download-settings.png)
+*Cache settings — limit background download speed and delay downloads so they don't compete with the video you're watching.*
+
+![Automatic cookie refresh with the beta extension](docs/screenshots/cookie-refresh.png)
+*Cookies — the beta browser extension can refresh your YouTube cookies automatically, on request from the app.*
+
+<details>
+<summary><b>Features</b></summary>
+
 #### Pause cache downloads while streaming
 
 You can make cache downloads pause automatically when VRChat is playing a streaming video. Set the delay (in seconds) to how long after the stream stops before downloads resume. Set to 0 to disable.
@@ -73,13 +85,16 @@ App start and basic functionality tested on Linux.
 ##### Steam App integration
 Steam app integration isn't supported yet. SteamVR integration is tested (e.g. starting this app with SteamVR)
 
+</details>
+
 ### Feedback
 For code feedback, feature ideas, and bugs, post a GitHub issue.
 You can leave general comments and feedback here: [Feedback](https://tally.so/r/kdrM2r)
 
 ---
 
-## FAQ from the EllyVR VRCVideoCacher README
+<details>
+<summary><b>FAQ from the EllyVR VRCVideoCacher README</b></summary>
 
 ### How does it work?
 
@@ -113,3 +128,5 @@ YouTube checks system time. Fix: Sync system time, Open Windows Settings -> Time
 **Linux:**
 - Delete config and cache from `~/.config/VRCVideoCacher`
 - VRChat runs under Proton, so delete "yt-dlp.exe" from the Steam compat prefix: `~/.steam/steam/steamapps/compatdata/438100/pfx/drive_c/users/steamuser/AppData/LocalLow/VRChat/VRChat/Tools`. Restart VRChat.
+
+</details>
