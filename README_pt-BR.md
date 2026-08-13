@@ -18,6 +18,27 @@ As extensões do VRCVideoCacherPlus estão em alfa e não foram testadas — ign
 O VRCVideoCacherPlus ajuda os vídeos do VRChat a tocarem. Às vezes, o YouTube bloqueia ou limita vídeos quando o cliente do usuário não fornece cookies. Este aplicativo fornece os cookies ao YouTube enquanto você joga VRChat, para que os vídeos toquem de forma fluida e em alta definição. O aplicativo também baixa vídeos de forma inteligente, se você ativar essa configuração, para que os vídeos que você toca com frequência (por exemplo, VRDancing) não precisem ser baixados da internet novamente. Você pode gerenciar o cache de vídeos, alterar a velocidade de download em segundo plano e atrasar o download do vídeo (para não baixar dois ou mais arquivos de vídeo ao mesmo tempo).
 O VRCVideoCacherPlus é baseado no VRCVideoCacher e adiciona muitas melhorias, como suporte a vídeos HLS e listas de reprodução de streaming (.m3u8).
 
+![Tela principal](docs/screenshots/main-info.png)
+*Tela principal — status, tamanho do cache e o que o aplicativo está fazendo no momento.*
+
+![Configurações de velocidade de download e atraso do cache](docs/screenshots/download-settings.png)
+*Configurações de cache — limite a velocidade de download em segundo plano e atrase os downloads para que não concorram com o vídeo que você está assistindo.*
+
+![Atualização automática de cookies com a extensão beta](docs/screenshots/cookie-refresh.png)
+*Cookies — a extensão de navegador em beta pode atualizar seus cookies do YouTube automaticamente, a pedido do aplicativo.*
+
+### Recursos
+
+- Pausar downloads de cache durante o streaming
+- Limite de velocidade de download do cache
+- Fila de downloads e downloads manuais
+- Cache de listas de reprodução HLS / vídeos em streaming
+- Outras melhorias
+- Builds
+
+<details>
+<summary><b>Detalhes de cada recurso</b></summary>
+
 #### Pausar downloads de cache durante o streaming
 
 Você pode fazer com que os downloads de cache pausem automaticamente quando o VRChat estiver reproduzindo um vídeo em streaming. Defina o atraso (em segundos) para quanto tempo após o término do stream os downloads devem ser retomados. Defina como 0 para desativar.
@@ -56,13 +77,16 @@ Inicialização do aplicativo e funcionalidade básica testadas no Linux.
 ##### Integração com o aplicativo Steam
 A integração com o aplicativo Steam ainda não é suportada. A integração com o SteamVR foi testada (por exemplo, iniciar este aplicativo com o SteamVR).
 
+</details>
+
 ### Feedback
 Para feedback sobre código, ideias de recursos e bugs, abra uma issue no GitHub.
 Você pode deixar comentários e feedback geral aqui: [Feedback](https://tally.so/r/kdrM2r)
 
 ---
 
-## FAQ do README do EllyVR VRCVideoCacher
+<details>
+<summary><b>FAQ do README do EllyVR VRCVideoCacher</b></summary>
 
 ### Como funciona?
 
@@ -86,7 +110,11 @@ Para corrigir vídeos do YouTube que não carregam, você precisará instalar a 
 
 O YouTube verifica a hora do sistema. Correção: Sincronize a hora do sistema. Abra as Configurações do Windows -> Hora e idioma -> Data e hora, em "Configurações adicionais" clique em "Sincronizar agora".
 
-### Como desinstalar
+</details>
+
+---
+
+## Como desinstalar
 
 **Windows:**
 - Se você usa o VRCX, exclua o atalho de inicialização "VRCVideoCacher" de `%AppData%\VRCX\startup`

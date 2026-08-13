@@ -18,6 +18,27 @@ VRCVideoCacherPlus 확장 프로그램은 알파 단계이며 테스트되지 �
 VRCVideoCacherPlus는 VRChat 동영상 재생을 도와줍니다. YouTube는 사용자 클라이언트가 쿠키를 제공하지 않으면 동영상을 차단하거나 제한하는 경우가 있습니다. 이 앱은 VRChat을 플레이하는 동안 YouTube에 쿠키를 전달하여 동영상이 고화질로 부드럽게 재생되도록 합니다. 또한 해당 설정을 켜면 동영상을 지능적으로 다운로드하여 자주 재생하는 동영상(예: VRDancing)을 매번 인터넷에서 다시 다운로드할 필요가 없게 합니다. 동영상 캐시를 관리하고, 백그라운드 다운로드 속도를 변경하며, 동영상 다운로드를 지연시킬 수 있습니다(두 개 이상의 동영상 파일을 동시에 다운로드하지 않도록).
 VRCVideoCacherPlus는 VRCVideoCacher를 기반으로 하며, HLS 및 스트리밍 재생 목록(.m3u8) 동영상 지원과 같은 여러 개선 사항을 추가했습니다.
 
+![메인 화면](docs/screenshots/main-info.png)
+*메인 화면 — 상태, 캐시 크기, 앱이 현재 수행 중인 작업.*
+
+![다운로드 속도 및 캐시 지연 설정](docs/screenshots/download-settings.png)
+*캐시 설정 — 백그라운드 다운로드 속도를 제한하고, 시청 중인 동영상과 겹치지 않도록 다운로드를 지연시킵니다.*
+
+![베타 확장 프로그램을 통한 쿠키 자동 갱신](docs/screenshots/cookie-refresh.png)
+*쿠키 — 베타 브라우저 확장 프로그램은 앱의 요청에 따라 YouTube 쿠키를 자동으로 갱신할 수 있습니다.*
+
+### 기능
+
+- 스트리밍 중 캐시 다운로드 일시정지
+- 캐시 다운로드 속도 제한
+- 다운로드 대기열 및 수동 다운로드
+- HLS / 스트리밍 동영상 재생 목록 캐시
+- 기타 개선 사항
+- 빌드
+
+<details>
+<summary><b>각 기능 자세히 보기</b></summary>
+
 #### 스트리밍 중 캐시 다운로드 일시정지
 
 VRChat이 스트리밍 동영상을 재생할 때 캐시 다운로드가 자동으로 일시정지되도록 설정할 수 있습니다. 스트림이 멈춘 후 다운로드가 재개되기까지의 지연 시간(초)을 설정하세요. 0으로 설정하면 비활성화됩니다.
@@ -56,13 +77,16 @@ Windows에서 사용자 테스트 완료.
 ##### Steam 앱 통합
 Steam 앱 통합은 아직 지원되지 않습니다. SteamVR 통합은 테스트되었습니다(예: SteamVR로 이 앱 시작).
 
+</details>
+
 ### 피드백
 코드 피드백, 기능 아이디어, 버그는 GitHub 이슈로 게시해 주세요.
 일반적인 의견과 피드백은 여기에 남길 수 있습니다: [피드백](https://tally.so/r/kdrM2r)
 
 ---
 
-## EllyVR VRCVideoCacher README의 FAQ
+<details>
+<summary><b>EllyVR VRCVideoCacher README의 FAQ</b></summary>
 
 ### 어떻게 작동하나요?
 
@@ -86,7 +110,11 @@ YouTube 동영상이 로드되지 않는 문제를 해결하려면 Chrome 또는
 
 YouTube는 시스템 시간을 확인합니다. 해결 방법: 시스템 시간을 동기화하세요. Windows 설정 -> 시간 및 언어 -> 날짜 및 시간을 열고 "추가 설정" 아래에서 "지금 동기화"를 클릭하세요.
 
-### 제거 방법
+</details>
+
+---
+
+## 제거 방법
 
 **Windows:**
 - VRCX를 사용하는 경우 `%AppData%\VRCX\startup`에서 시작 바로 가기 "VRCVideoCacher"를 삭제하세요

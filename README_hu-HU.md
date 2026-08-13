@@ -18,6 +18,27 @@ A VRCVideoCacherPlus bővítmények alfa állapotúak és teszteletlenek — hag
 A VRCVideoCacherPlus segít a VRChat videók lejátszásában. A YouTube néha blokkolja vagy fojtja a videókat, ha a felhasználó kliense nem ad meg cookie-kat. Ez az alkalmazás átadja a YouTube-nak a cookie-kat, miközben VRChatezel, így a videók simán és nagy felbontásban játszódnak le. Az alkalmazás emellett intelligensen letölti a videókat, ha bekapcsolod ezt a beállítást, így a gyakran lejátszott videókat (pl. VRDancing) nem kell újra letölteni az internetről. Kezelheted a videó-gyorsítótárat, módosíthatod a háttérben futó letöltési sebességet, és késleltetheted a videó letöltését (hogy ne tölts le egyszerre két vagy több videófájlt).
 A VRCVideoCacherPlus a VRCVideoCacher-en alapul, és számos fejlesztést tartalmaz, mint például a HLS és a streaming lejátszási lista (.m3u8) videók támogatása.
 
+![Főképernyő](docs/screenshots/main-info.png)
+*Főképernyő — állapot, gyorsítótár mérete és az alkalmazás aktuális tevékenysége.*
+
+![Letöltési sebesség és gyorsítótár-késleltetés beállításai](docs/screenshots/download-settings.png)
+*Gyorsítótár-beállítások — korlátozd a háttérben futó letöltési sebességet, és késleltesd a letöltéseket, hogy ne versenyezzenek az éppen nézett videóval.*
+
+![Automatikus cookie-frissítés a béta bővítménnyel](docs/screenshots/cookie-refresh.png)
+*Cookie-k — a béta böngészőbővítmény az alkalmazás kérésére automatikusan frissítheti a YouTube cookie-jaidat.*
+
+### Funkciók
+
+- Gyorsítótár-letöltések szüneteltetése streamelés közben
+- Gyorsítótár-letöltés sebességkorlátja
+- Letöltési sor és kézi letöltések
+- HLS / streaming-videó lejátszási listák gyorsítótárazása
+- Egyéb fejlesztések
+- Buildek
+
+<details>
+<summary><b>Részletek az egyes funkciókról</b></summary>
+
 #### Gyorsítótár-letöltések szüneteltetése streamelés közben
 
 Beállíthatod, hogy a gyorsítótár-letöltések automatikusan szüneteljenek, amikor a VRChat streaming videót játszik le. Állítsd be a késleltetést (másodpercben), hogy a stream leállása után mennyivel folytatódjanak a letöltések. 0-ra állítva letiltható.
@@ -56,13 +77,16 @@ Az alkalmazás indítása és alapvető működése tesztelve Linuxon.
 ##### Steam alkalmazás integráció
 A Steam alkalmazás integrációja egyelőre nem támogatott. A SteamVR integráció tesztelve van (pl. az alkalmazás indítása a SteamVR-rel).
 
+</details>
+
 ### Visszajelzés
 Kódra vonatkozó visszajelzéshez, funkcióötletekhez és hibákhoz nyiss GitHub issue-t.
 Általános észrevételeket és visszajelzéseket itt hagyhatsz: [Visszajelzés](https://tally.so/r/kdrM2r)
 
 ---
 
-## GYIK az EllyVR VRCVideoCacher README-ből
+<details>
+<summary><b>GYIK az EllyVR VRCVideoCacher README-ből</b></summary>
 
 ### Hogyan működik?
 
@@ -86,7 +110,11 @@ A nem betöltődő YouTube videók javításához telepítened kell a Chrome vag
 
 A YouTube ellenőrzi a rendszeridőt. Javítás: Szinkronizáld a rendszeridőt. Nyisd meg a Windows Beállítások -> Idő és nyelv -> Dátum és idő menüt, és a „További beállítások” alatt kattints a „Szinkronizálás most” gombra.
 
-### Eltávolítás
+</details>
+
+---
+
+## Eltávolítás
 
 **Windows:**
 - Ha használod a VRCX-et, töröld a „VRCVideoCacher” indítási parancsikont a `%AppData%\VRCX\startup` mappából
