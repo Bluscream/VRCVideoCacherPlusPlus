@@ -11,9 +11,21 @@ public static class VideoPreCache
 {
     private static readonly ILogger Log = Program.Logger.ForContext(typeof(VideoPreCache));
 
+    // A single entry may hold several URLs pasted together — comma, whitespace or
+    // newline separated — so every stored entry is expanded before use. Applied both
+    // here and when Settings saves, so a hand-edited config behaves like the UI.
+    private static readonly char[] UrlSeparators = [',', ';', ' ', '\t', '\n', '\r'];
+
+    public static string[] SplitUrls(IEnumerable<string> entries) =>
+        entries
+            .SelectMany(entry => entry.Split(
+                UrlSeparators,
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .ToArray();
+
     public static async Task QueueConfiguredVideos()
     {
-        var urls = ConfigManager.Config.PreCacheVideos;
+        var urls = SplitUrls(ConfigManager.Config.PreCacheVideos);
         if (urls.Length == 0)
             return;
 

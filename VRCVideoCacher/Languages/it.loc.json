@@ -7,7 +7,7 @@
   "Logs": "Logs",
   "About": "Informazioni",
   "PreCacheVideos": "Video pre-memorizzati",
-  "PreCacheVideosHint": "URL di video scaricati all'avvio se non già in cache.",
+  "PreCacheVideosHint": "URL di video scaricati all'avvio se non già in cache. Puoi incollarne diversi insieme, separati da virgole, spazi o a capo.",
   "CookiesExpired": "Cookie di accesso scaduto",
   "CookiesExpireToday": "Il cookie di accesso scade oggi",
   "CookiesExpireInDaysFormat": "Il cookie di accesso scade tra {0} giorni",

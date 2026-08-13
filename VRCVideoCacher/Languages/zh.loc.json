@@ -7,7 +7,7 @@
   "Logs": "日志",
   "About": "关于",
   "PreCacheVideos": "预缓存视频",
-  "PreCacheVideosHint": "启动时下载的视频链接（若尚未缓存）。",
+  "PreCacheVideosHint": "启动时下载的视频链接（若尚未缓存）。 可以一次粘贴多个，使用逗号、空格或换行分隔。",
   "CookiesExpired": "登录 Cookie 已过期",
   "CookiesExpireToday": "登录 Cookie 今天过期",
   "CookiesExpireInDaysFormat": "登录 Cookie 将在 {0} 天后过期",

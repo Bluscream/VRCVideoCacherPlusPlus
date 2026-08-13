@@ -7,7 +7,7 @@
   "Logs": "Registros",
   "About": "Sobre",
   "PreCacheVideos": "Vídeos pré-armazenados",
-  "PreCacheVideosHint": "URLs de vídeos baixados na inicialização se ainda não estiverem em cache.",
+  "PreCacheVideosHint": "URLs de vídeos baixados na inicialização se ainda não estiverem em cache. Você pode colar vários de uma vez, separados por vírgulas, espaços ou quebras de linha.",
   "CookiesExpired": "Cookie de login expirado",
   "CookiesExpireToday": "O cookie de login expira hoje",
   "CookiesExpireInDaysFormat": "O cookie de login expira em {0} dias",

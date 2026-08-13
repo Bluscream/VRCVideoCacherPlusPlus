@@ -109,16 +109,6 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding NavigateToStatsCommand}"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
-                            Classes="nav-button">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <mi:MaterialIcon Kind="ChartBar" Width="20" Height="20"/>
-                            <TextBlock Text="{l:Localize Stats}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
                     <Button Command="{Binding NavigateToSettingsCommand}"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
@@ -184,9 +174,6 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
                         <views:HistoryView/>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type vm:StatsViewModel}">
-                        <views:StatsView/>
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:AboutViewModel}">
                         <views:AboutView/>

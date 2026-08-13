@@ -7,7 +7,7 @@
   "Logs": "ログ",
   "About": "バージョン情報",
   "PreCacheVideos": "事前キャッシュする動画",
-  "PreCacheVideosHint": "未キャッシュの場合、起動時にダウンロードする動画URL。",
+  "PreCacheVideosHint": "未キャッシュの場合、起動時にダウンロードする動画URL。 カンマ・スペース・改行で区切って複数まとめて貼り付けできます。",
   "CookiesExpired": "ログインCookieの有効期限が切れました",
   "CookiesExpireToday": "ログインCookieは本日期限切れになります",
   "CookiesExpireInDaysFormat": "ログインCookieは {0} 日後に期限切れになります",

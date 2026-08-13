@@ -7,17 +7,19 @@
              x:DataType="vm:StatsViewModel"
              x:CompileBindings="True">
 
-    <Grid RowDefinitions="Auto, Auto, Auto, *">
+    <!-- Hosted as a section inside AboutView, so every row sizes to content rather
+         than filling a page. -->
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto">
         <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="10">
-            <TextBlock Text="{l:Localize Stats}" FontSize="24" FontWeight="Bold"/>
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+            <TextBlock Text="{l:Localize Stats}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
             <Button Grid.Column="1" Command="{Binding RefreshCommand}" ToolTip.Tip="{l:Localize Refresh}">
                 <mi:MaterialIcon Kind="Refresh" Width="20" Height="20"/>
             </Button>
         </Grid>
 
         <!-- Summary tiles -->
-        <UniformGrid Grid.Row="1" Columns="4" Margin="10,0">
+        <UniformGrid Grid.Row="1" Columns="4">
             <Border Background="#252525" CornerRadius="4" Padding="12" Margin="0,0,5,0">
                 <StackPanel>
                     <TextBlock Text="{l:Localize CacheHitRate}" FontSize="12" Foreground="#888888"/>
@@ -47,12 +49,12 @@
         <!-- Caveat: hits on since-evicted videos have no size to attribute -->
         <TextBlock Grid.Row="2" Text="{Binding BytesSavedCaveat}"
                    IsVisible="{Binding BytesSavedCaveat, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                   FontSize="11" Foreground="#888888" TextWrapping="Wrap" Margin="10,8,10,0"/>
+                   FontSize="11" Foreground="#888888" TextWrapping="Wrap" Margin="0,8,0,0"/>
 
         <!-- Most replayed -->
-        <Grid Grid.Row="3" RowDefinitions="Auto, *" Margin="10,12,10,0">
-            <TextBlock Grid.Row="0" Text="{l:Localize MostReplayed}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6"/>
-            <ListBox Grid.Row="1" ItemsSource="{Binding TopVideos}" Background="#1a1a1a">
+        <Grid Grid.Row="3" RowDefinitions="Auto, Auto" Margin="0,12,0,0">
+            <TextBlock Grid.Row="0" Text="{l:Localize MostReplayed}" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <ListBox Grid.Row="1" ItemsSource="{Binding TopVideos}" Background="#1a1a1a" MaxHeight="320">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:TopVideoViewModel">
                         <Border Margin="2" Background="#252525" CornerRadius="4" Padding="8">

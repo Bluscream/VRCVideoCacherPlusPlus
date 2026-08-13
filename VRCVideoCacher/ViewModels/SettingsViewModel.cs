@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Jeek.Avalonia.Localization;
 using VRCVideoCacher.API;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL;
 
 namespace VRCVideoCacher.ViewModels;
@@ -334,10 +335,14 @@ public partial class SettingsViewModel : ViewModelBase
             .Select(item => item.Url)
             .ToArray();
         config.BlockRedirect = BlockRedirect;
-        config.PreCacheVideos = PreCacheVideos
-            .Select(item => item.Url.Trim())
-            .Where(url => !string.IsNullOrWhiteSpace(url))
-            .ToArray();
+        // One row may hold a whole pasted list; split it so each URL gets its own row.
+        config.PreCacheVideos = VideoPreCache.SplitUrls(PreCacheVideos.Select(item => item.Url));
+        if (!config.PreCacheVideos.SequenceEqual(PreCacheVideos.Select(item => item.Url)))
+        {
+            PreCacheVideos.Clear();
+            foreach (var url in config.PreCacheVideos)
+                PreCacheVideos.Add(new UrlEntry(url));
+        }
         config.RedirectVRDancing = RedirectVRDancing;
         config.AutoUpdateVrcVideoCacher = AutoUpdate;
 

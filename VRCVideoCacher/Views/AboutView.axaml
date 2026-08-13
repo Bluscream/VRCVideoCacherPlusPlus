@@ -3,6 +3,7 @@
              xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:l="using:Jeek.Avalonia.Localization"
              xmlns:vm="clr-namespace:VRCVideoCacher.ViewModels"
+             xmlns:views="clr-namespace:VRCVideoCacher.Views"
              x:Class="VRCVideoCacher.Views.AboutView"
              x:DataType="vm:AboutViewModel">
 
@@ -32,6 +33,11 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
+            </Border>
+
+            <!-- Stats -->
+            <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                <views:StatsView DataContext="{Binding Stats}"/>
             </Border>
 
             <!-- Report an Issue -->

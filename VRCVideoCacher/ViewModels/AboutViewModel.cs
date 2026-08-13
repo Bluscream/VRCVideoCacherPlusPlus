@@ -7,6 +7,7 @@ public class AboutViewModel : ViewModelBase
     public string Version { get; }
     public string PlusAuthor { get; } = "VRCVideoCacherPlus by codeyumx";
     public string CreatedBy { get; }
+    public StatsViewModel Stats { get; } = new();
 
     public AboutViewModel()
     {

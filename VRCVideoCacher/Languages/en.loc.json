@@ -7,7 +7,7 @@
   "Logs": "Logs",
   "About": "About",
   "PreCacheVideos": "Pre-cached Videos",
-  "PreCacheVideosHint": "Video URLs downloaded at startup if not already cached.",
+  "PreCacheVideosHint": "Video URLs downloaded at startup if not already cached. You can paste several at once, separated by commas, spaces or new lines.",
   "CookiesExpired": "Login cookie expired",
   "CookiesExpireToday": "Login cookie expires today",
   "CookiesExpireInDaysFormat": "Login cookie expires in {0} days",
