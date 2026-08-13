@@ -254,6 +254,14 @@ public static class DatabaseManager
             .ToDictionary(v => v.VideoId);
     }
 
+    // Every resolved request is recorded in PlayHistory, while VideoWatchStats is only
+    // incremented on a cache hit — so this is the denominator for the cache hit rate.
+    public static int GetPlayHistoryCount()
+    {
+        using var db = _contextFactory.CreateDbContext();
+        return db.PlayHistory.AsNoTracking().Count();
+    }
+
     // --- Pending Downloads ---
 
     public static void AddPendingDownload(VideoInfo videoInfo)
