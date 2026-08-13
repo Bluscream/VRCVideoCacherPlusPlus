@@ -13,12 +13,12 @@ namespace VRCVideoCacher.ViewModels;
 
 public record LanguageOption(string Code, string DisplayName);
 
-public partial class BlockedUrlEntry : ObservableObject
+public partial class UrlEntry : ObservableObject
 {
     [ObservableProperty]
     private string _url;
 
-    public BlockedUrlEntry(string url)
+    public UrlEntry(string url)
     {
         _url = url;
     }
@@ -114,7 +114,11 @@ public partial class SettingsViewModel : ViewModelBase
     private bool _startMinimized;
 
     // Blocked URLs
-    public ObservableCollection<BlockedUrlEntry> BlockedUrls { get; } = [];
+    public ObservableCollection<UrlEntry> BlockedUrls { get; } = [];
+
+    // Video URLs pre-cached at startup (distinct from config.PreCacheUrls, which mirrors
+    // JSON manifests of direct file downloads and has no UI).
+    public ObservableCollection<UrlEntry> PreCacheVideos { get; } = [];
 
     [ObservableProperty]
     private string _blockRedirect = string.Empty;
@@ -160,7 +164,8 @@ public partial class SettingsViewModel : ViewModelBase
 
     public SettingsViewModel()
     {
-        BlockedUrls.CollectionChanged += OnBlockedUrlsCollectionChanged;
+        BlockedUrls.CollectionChanged += OnUrlCollectionChanged;
+        PreCacheVideos.CollectionChanged += OnUrlCollectionChanged;
         ConfigManager.OnConfigChanged += LoadFromConfig;
         PlusConfigManager.OnConfigChanged += LoadFromConfig;
         LoadFromConfig();
@@ -202,9 +207,15 @@ public partial class SettingsViewModel : ViewModelBase
         BlockedUrls.Clear();
         foreach (var url in config.BlockedUrls)
         {
-            BlockedUrls.Add(new BlockedUrlEntry(url));
+            BlockedUrls.Add(new UrlEntry(url));
         }
         BlockRedirect = config.BlockRedirect;
+
+        PreCacheVideos.Clear();
+        foreach (var url in config.PreCacheVideos)
+        {
+            PreCacheVideos.Add(new UrlEntry(url));
+        }
 
         SelectedLanguageOption = AvailableLanguageOptions.FirstOrDefault(o => o.Code == config.Language)
                                  ?? AvailableLanguageOptions.FirstOrDefault();
@@ -227,30 +238,30 @@ public partial class SettingsViewModel : ViewModelBase
         StatusMessageColor = "#FFB74D";
     }
 
-    private void OnBlockedUrlsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void OnUrlCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.OldItems is not null)
         {
-            foreach (var oldItem in e.OldItems.OfType<BlockedUrlEntry>())
+            foreach (var oldItem in e.OldItems.OfType<UrlEntry>())
             {
-                oldItem.PropertyChanged -= OnBlockedUrlEntryPropertyChanged;
+                oldItem.PropertyChanged -= OnUrlEntryPropertyChanged;
             }
         }
 
         if (e.NewItems is not null)
         {
-            foreach (var newItem in e.NewItems.OfType<BlockedUrlEntry>())
+            foreach (var newItem in e.NewItems.OfType<UrlEntry>())
             {
-                newItem.PropertyChanged += OnBlockedUrlEntryPropertyChanged;
+                newItem.PropertyChanged += OnUrlEntryPropertyChanged;
             }
         }
 
         SetHasChanges();
     }
 
-    private void OnBlockedUrlEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnUrlEntryPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(BlockedUrlEntry.Url))
+        if (e.PropertyName == nameof(UrlEntry.Url))
         {
             SetHasChanges();
         }
@@ -323,6 +334,10 @@ public partial class SettingsViewModel : ViewModelBase
             .Select(item => item.Url)
             .ToArray();
         config.BlockRedirect = BlockRedirect;
+        config.PreCacheVideos = PreCacheVideos
+            .Select(item => item.Url.Trim())
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .ToArray();
         config.RedirectVRDancing = RedirectVRDancing;
         config.AutoUpdateVrcVideoCacher = AutoUpdate;
 
@@ -356,13 +371,25 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private void AddBlockedUrl()
     {
-        BlockedUrls.Add(new BlockedUrlEntry("https://"));
+        BlockedUrls.Add(new UrlEntry("https://"));
     }
 
     [RelayCommand]
-    private void RemoveBlockedUrl(BlockedUrlEntry url)
+    private void RemoveBlockedUrl(UrlEntry url)
     {
         BlockedUrls.Remove(url);
+    }
+
+    [RelayCommand]
+    private void AddPreCacheVideo()
+    {
+        PreCacheVideos.Add(new UrlEntry("https://"));
+    }
+
+    [RelayCommand]
+    private void RemovePreCacheVideo(UrlEntry url)
+    {
+        PreCacheVideos.Remove(url);
     }
 
     [RelayCommand]

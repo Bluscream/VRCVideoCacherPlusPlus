@@ -234,6 +234,40 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- Pre-cached videos -->
+                <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel>
+                                <TextBlock Text="{l:Localize PreCacheVideos}" FontWeight="SemiBold" FontSize="16"/>
+                                <TextBlock Text="{l:Localize PreCacheVideosHint}" FontSize="12" Foreground="#888888"
+                                           TextWrapping="Wrap" Margin="0,4,10,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding AddPreCacheVideoCommand}" VerticalAlignment="Top">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <mi:MaterialIcon Kind="Plus" Width="16" Height="16"/>
+                                    <TextBlock Text="{l:Localize Add}"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding PreCacheVideos}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto" Margin="0,5">
+                                        <TextBox Grid.Column="0" Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <Button Grid.Column="1" Margin="5,0,0,0"
+                                                Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemovePreCacheVideoCommand}"
+                                                CommandParameter="{Binding}">
+                                            <mi:MaterialIcon Kind="Delete" Width="16" Height="16"/>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

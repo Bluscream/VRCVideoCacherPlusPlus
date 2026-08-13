@@ -6,6 +6,8 @@
   "History": "기록",
   "Logs": "로그",
   "About": "정보",
+  "PreCacheVideos": "미리 캐시할 동영상",
+  "PreCacheVideosHint": "캐시에 없으면 시작할 때 다운로드할 동영상 URL입니다.",
   "CookiesExpired": "로그인 쿠키가 만료되었습니다",
   "CookiesExpireToday": "로그인 쿠키가 오늘 만료됩니다",
   "CookiesExpireInDaysFormat": "로그인 쿠키가 {0}일 후 만료됩니다",

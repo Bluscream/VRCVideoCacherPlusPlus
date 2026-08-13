@@ -252,6 +252,9 @@ internal sealed class Program
             Logger.Warning("No cookies found, please use the browser extension to send cookies or disable \"ytdlUseCookies\" in config.");
 
         CacheManager.Init();
+        // Runs after CacheManager.Init so already-cached videos are skipped; not awaited
+        // because resolving each URL hits the network and must not delay startup.
+        _ = VideoPreCache.QueueConfiguredVideos();
         VRDancingSheetService.StartBackgroundSync();
 
         // run after init to avoid text spam blocking user input

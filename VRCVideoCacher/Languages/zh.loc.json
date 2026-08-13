@@ -6,6 +6,8 @@
   "History": "历史记录",
   "Logs": "日志",
   "About": "关于",
+  "PreCacheVideos": "预缓存视频",
+  "PreCacheVideosHint": "启动时下载的视频链接（若尚未缓存）。",
   "CookiesExpired": "登录 Cookie 已过期",
   "CookiesExpireToday": "登录 Cookie 今天过期",
   "CookiesExpireInDaysFormat": "登录 Cookie 将在 {0} 天后过期",

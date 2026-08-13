@@ -155,7 +155,11 @@ public class ConfigModel
     // Cache Rules
     public string[] BlockedUrls = ["https://na2.vrdancing.club/sampleurl.mp4"];
     public string BlockRedirect = "https://www.youtube.com/watch?v=byv2bKekeWQ";
+    // URLs of JSON manifests listing direct file downloads to mirror into the cache.
     public string[] PreCacheUrls = [];
+    // Video URLs (YouTube, VRDancing, ...) resolved through the normal download path
+    // and queued at startup if not already cached.
+    public string[] PreCacheVideos = [];
 
     // Patching
     public bool PatchResonite = false;

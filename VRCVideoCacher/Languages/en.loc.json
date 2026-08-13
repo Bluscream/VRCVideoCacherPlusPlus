@@ -6,6 +6,8 @@
   "History": "History",
   "Logs": "Logs",
   "About": "About",
+  "PreCacheVideos": "Pre-cached Videos",
+  "PreCacheVideosHint": "Video URLs downloaded at startup if not already cached.",
   "CookiesExpired": "Login cookie expired",
   "CookiesExpireToday": "Login cookie expires today",
   "CookiesExpireInDaysFormat": "Login cookie expires in {0} days",
