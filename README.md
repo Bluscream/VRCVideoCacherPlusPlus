@@ -44,8 +44,17 @@ VRCVideoCacherPlus is based on VRCVideoCacher and adds many improvements, like H
 ![Automatic cookie refresh with the beta extension](docs/screenshots/cookie-refresh.png)
 *Cookies — the beta browser extension can refresh your YouTube cookies automatically, on request from the app.*
 
+### Features
+
+- Pause cache downloads while streaming
+- Cache download speed limit
+- Download queue & manual downloads
+- Cache HLS / streaming-video playlists
+- Other improvements
+- Builds
+
 <details>
-<summary><b>Features</b></summary>
+<summary><b>Details on each feature</b></summary>
 
 #### Pause cache downloads while streaming
 
