@@ -23,6 +23,9 @@
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="{Binding StatusText}" FontSize="16" FontWeight="SemiBold"
                                                Foreground="{Binding StatusColor}"/>
+                                    <TextBlock Text="{Binding ExpiryText}" FontSize="12" Margin="0,4,0,0"
+                                               Foreground="{Binding ExpiryColor}"
+                                               IsVisible="{Binding HasExpiry}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

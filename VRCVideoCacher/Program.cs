@@ -304,6 +304,41 @@ internal sealed class Program
         return false;
     }
 
+    // Expiry of the LOGIN_INFO cookie from the Netscape-format cookie file, or null when
+    // there is no cookie file / no expiring LOGIN_INFO line. LOGIN_INFO is the cookie that
+    // actually carries the YouTube login — it is what IsCookiesValid keys on, and once it
+    // lapses the whole jar stops authenticating regardless of what else is still valid.
+    public static DateTime? GetCookiesExpiryUtc()
+    {
+        if (!DoesCookieFileExist())
+            return null;
+
+        try
+        {
+            foreach (var line in File.ReadLines(YtdlManager.CookiesPath))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
+                    continue;
+
+                var parts = line.Split('\t');
+                if (parts.Length < 7 || parts[5] != "LOGIN_INFO")
+                    continue;
+
+                // Column 4 is the expiry as unix seconds; 0 marks a session cookie with no expiry.
+                if (!long.TryParse(parts[4], out var unix) || unix <= 0)
+                    continue;
+
+                return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning("Failed to read cookie expiry: {Error}", ex.Message);
+        }
+
+        return null;
+    }
+
     public static async Task<bool?> ValidateCookiesAsync()
     {
         if (!IsCookiesEnabledAndValid())

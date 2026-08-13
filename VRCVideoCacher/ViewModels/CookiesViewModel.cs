@@ -78,6 +78,46 @@ public partial class CookiesViewModel : ViewModelBase
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusIcon));
         OnPropertyChanged(nameof(StatusColor));
+        OnPropertyChanged(nameof(ExpiryText));
+        OnPropertyChanged(nameof(HasExpiry));
+        OnPropertyChanged(nameof(ExpiryColor));
+    }
+
+    // Warn once the login cookie is within a week of lapsing — enough notice to refresh
+    // before playback starts failing, without nagging for the whole life of the cookie.
+    private const int ExpiryWarningDays = 7;
+
+    public bool HasExpiry => UseCookies && Program.GetCookiesExpiryUtc() != null;
+
+    public string ExpiryText
+    {
+        get
+        {
+            var expiry = Program.GetCookiesExpiryUtc();
+            if (!UseCookies || expiry == null)
+                return string.Empty;
+
+            var days = (int)Math.Floor((expiry.Value - DateTime.UtcNow).TotalDays);
+            if (days < 0)
+                return Localizer.Get("CookiesExpired");
+
+            return days == 0
+                ? Localizer.Get("CookiesExpireToday")
+                : string.Format(Localizer.Get("CookiesExpireInDaysFormat"), days);
+        }
+    }
+
+    public IBrush ExpiryColor
+    {
+        get
+        {
+            var expiry = Program.GetCookiesExpiryUtc();
+            if (expiry == null) return Grey;
+
+            var days = (expiry.Value - DateTime.UtcNow).TotalDays;
+            if (days < 0) return Red;
+            return days <= ExpiryWarningDays ? Amber : Grey;
+        }
     }
 
     private bool HasValidFile =>
