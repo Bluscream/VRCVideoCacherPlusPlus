@@ -118,7 +118,11 @@ In order to fix YouTube videos failing to load, you'll need to install the Chrom
 
 YouTube checks system time. Fix: Sync system time, Open Windows Settings -> Time & Language -> Date & Time, under "Additional settings" click "Sync now"
 
-### How to uninstall
+</details>
+
+---
+
+## How to uninstall
 
 **Windows:**
 - If you have VRCX, delete the startup shortcut "VRCVideoCacher" from `%AppData%\VRCX\startup`
@@ -128,5 +132,3 @@ YouTube checks system time. Fix: Sync system time, Open Windows Settings -> Time
 **Linux:**
 - Delete config and cache from `~/.config/VRCVideoCacher`
 - VRChat runs under Proton, so delete "yt-dlp.exe" from the Steam compat prefix: `~/.steam/steam/steamapps/compatdata/438100/pfx/drive_c/users/steamuser/AppData/LocalLow/VRChat/VRChat/Tools`. Restart VRChat.
-
-</details>
