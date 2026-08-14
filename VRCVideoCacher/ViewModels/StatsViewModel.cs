@@ -51,10 +51,9 @@ public partial class StatsViewModel : ViewModelBase
     private void Refresh()
     {
         var stats = DatabaseManager.GetAllVideoWatchStats();
-        var sizeByVideoId = CacheManager.GetCachedAssets()
-            .ToDictionary(
-                kvp => Path.GetFileNameWithoutExtension(kvp.Key),
-                kvp => kvp.Value.Size);
+        var sizeByVideoId = CacheStats.SizesByVideoId(
+            CacheManager.GetCachedAssets()
+                .Select(kvp => new KeyValuePair<string, long>(kvp.Key, kvp.Value.Size)));
 
         var result = CacheStats.Compute(
             stats.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.WatchCount),

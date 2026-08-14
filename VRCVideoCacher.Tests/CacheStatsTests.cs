@@ -78,6 +78,44 @@ public class CacheStatsTests
         Assert.Equal(0, result.UncountedHits);
     }
 
+    [Fact]
+    public void SizesByVideoIdCollapsesDuplicateExtensions()
+    {
+        // A cache holding two formats of one video crashed the app on startup: the Stats
+        // view is built in the window's constructor, so a throw here means the window never
+        // appears at all. Attributing one size per video id is what makes BytesSaved mean
+        // "bandwidth a play avoided" rather than "bytes sitting on disk".
+        var sizes = CacheStats.SizesByVideoId(new Dictionary<string, long>
+        {
+            ["l7hbIgnyhe0.mp4"] = 500,
+            ["l7hbIgnyhe0.webm"] = 900,
+            ["other.mp4"] = 100
+        });
+
+        Assert.Equal(900, sizes["l7hbIgnyhe0"]);
+        Assert.Equal(100, sizes["other"]);
+    }
+
+    [Fact]
+    public void SizesByVideoIdFeedsComputeWithoutDoubleCounting()
+    {
+        // Guards the pairing, not just the helper: two files for one id must not inflate
+        // BytesSaved to their sum, or the headline number overstates the tool's value.
+        var sizes = CacheStats.SizesByVideoId(new Dictionary<string, long>
+        {
+            ["a.mp4"] = 500,
+            ["a.webm"] = 900
+        });
+
+        var result = CacheStats.Compute(
+            watchCounts: new Dictionary<string, int> { ["a"] = 2 },
+            sizesByVideoId: sizes,
+            totalPlays: 2);
+
+        Assert.Equal(1800, result.BytesSaved);
+        Assert.Equal(0, result.UncountedHits);
+    }
+
     [Theory]
     [InlineData(0, "0 B")]
     [InlineData(1024, "1.00 KB")]

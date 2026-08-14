@@ -44,6 +44,16 @@ public static class CacheStats
             uncountedHits);
     }
 
+    // Cache files are keyed by file name, so one video id can own several files with
+    // different extensions. Collapsing them to the id must not throw on the duplicate;
+    // the largest file is what a single play would otherwise have downloaded.
+    public static Dictionary<string, long> SizesByVideoId(IEnumerable<KeyValuePair<string, long>> sizesByFileName)
+    {
+        return sizesByFileName
+            .GroupBy(f => Path.GetFileNameWithoutExtension(f.Key))
+            .ToDictionary(g => g.Key, g => g.Max(f => f.Value));
+    }
+
     public static string FormatSize(long bytes)
     {
         string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
