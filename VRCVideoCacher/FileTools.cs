@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.Versioning;
 using Serilog;
@@ -185,7 +185,7 @@ public class FileTools
         if (ConfigManager.Config.PatchVrChat)
         {
             if (!BackupAndReplaceYtdl(YtdlPathVrc, BackupPathVrc))
-                Log.Error("Can't find VRC data, it may not be installed. {Path}", YtdlPathVrc);
+                Log.Warning("Can't find VRC data, it may not be installed. {Path}", YtdlPathVrc);
         }
         if (ConfigManager.Config.PatchResonite)
         {
