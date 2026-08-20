@@ -74,6 +74,49 @@ public class ConfigManager
             Config.UriRules = Config.UriRules.DistinctBy(r => r.Name + "|" + r.Pattern).ToList();
         }
 
+        // Migrate and sync legacy settings into Rules Engine
+        if (Config.UriRules != null)
+        {
+            var ytRule = Config.UriRules.FirstOrDefault(r => r.Name == "YouTube");
+            if (ytRule != null)
+            {
+                ytRule.MaxResolution = Config.CacheYouTubeMaxResolution;
+                ytRule.MaxDurationMinutes = Config.CacheYouTubeMaxLength;
+            }
+
+            var redirectRule = Config.UriRules.FirstOrDefault(r => r.Name == "VRDancing EU to NA Redirect");
+            if (redirectRule != null && Config.RedirectVRDancing)
+            {
+                redirectRule.Enabled = true;
+            }
+
+            if (Config.BlockedUrls != null)
+            {
+                foreach (var blockedUrl in Config.BlockedUrls)
+                {
+                    if (string.IsNullOrWhiteSpace(blockedUrl) || blockedUrl == "https://na2.vrdancing.club/sampleurl.mp4")
+                        continue;
+
+                    var escapedPattern = "^" + System.Text.RegularExpressions.Regex.Escape(blockedUrl) + "$";
+                    if (!Config.UriRules.Any(r => r.Pattern == escapedPattern))
+                    {
+                        var lastIndex = Config.UriRules.FindIndex(r => r.Name == "Everything else");
+                        var blockRule = new UriRule
+                        {
+                            Name = $"Block {blockedUrl}",
+                            Pattern = escapedPattern,
+                            Action = RuleAction.Block,
+                            Enabled = true
+                        };
+                        if (lastIndex >= 0)
+                            Config.UriRules.Insert(lastIndex, blockRule);
+                        else
+                            Config.UriRules.Add(blockRule);
+                    }
+                }
+            }
+        }
+
         if (Config.YtdlpWebServerUrl.EndsWith('/'))
             Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
 
