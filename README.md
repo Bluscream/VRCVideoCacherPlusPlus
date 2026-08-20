@@ -42,13 +42,9 @@ VRCVideoCacherPlusPlus expands on VRCVideoCacherPlus with powerful regex URI rul
 - ⚡ **Regex URI Rules Engine**: Configure custom URL rules (`Cache`, `Redirect`, `Rewrite`, `Block`, `Direct`) with regex pattern matching, capture substitutions (`$1`, `$2`), and token replacements (`{url.domain}`, `{url.path}`, etc.).
 - 🎛️ **Rules Tab & Live Matcher**: Dedicated Rules management tab featuring a live Test URL matcher to preview rule evaluation in real-time, drag/button reordering (`Move Up` / `Move Down`), and modal rule editing with syntax validation.
 - ⚠️ **Unsaved Changes Guard**: Prevents accidental data loss when navigating away or exiting the application with unsaved rules.
-- 🔀 **`Rewrite` Rule Action**: Allows URLs to be transformed (such as cloud share links) while letting lower rules in the chain continue evaluating the rewritten URL.
-- 📁 **Cloud Share Direct Rewrites**: Pre-configured default rules for Dropbox (`dl=0` -> `dl=1`) and Google Drive (`/file/d/<id>/view` -> `export=download`) direct download links.
-- 🎬 **In-Game Video Player Toggle**: Dashboard card with a single toggle ("Disable Videoplayers" / "Enable Videoplayers") to immediately block or unblock all in-game video playback requests.
+- 🎬 **Quick Video Player Toggle**: Dashboard card with a single toggle ("Disable Videoplayers" / "Enable Videoplayers") to immediately block or unblock all in-game video playback requests.
 - 🛠️ **Unified Tools Status Card**: Dashboard indicator tracking runtime statuses for `yt-dlp`, `Deno`, and `FFmpeg` (`Up-To-Date`, `Shim`, `Outdated`, `Missing`).
-- 📂 **Cache Browser Action Shortcuts**: Action buttons for **Watch Video**, **Copy File Path**, **Open on YouTube**, **Open Source URL**, and **Delete**.
-- 📜 **Full Playlist Ingestion**: Automatic flat-playlist extraction and metadata fetching for YouTube & YouTube Music playlist links in manual download input.
-
+  
 <details>
 <summary><b>Details on original Plus features</b></summary>
 
