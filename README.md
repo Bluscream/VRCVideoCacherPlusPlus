@@ -1,17 +1,17 @@
-# VRCVideoCacherPlus
+# VRCVideoCacherPlusPlus
 
 **Language:** **English** | [日本語](./README_ja-JP.md) | [Magyar](./README_hu-HU.md) | [한국어](./README_ko-KR.md) | [Português do Brasil](./README_pt-BR.md)
 
 ### Download
 
-- [Windows — VRCVideoCacher.exe](https://github.com/codeyumx/VRCVideoCacherPlus/releases/latest/download/VRCVideoCacher.exe)
-- [Linux — VRCVideoCacher](https://github.com/codeyumx/VRCVideoCacherPlus/releases/latest/download/VRCVideoCacher)
+- [Windows — VRCVideoCacher.exe](https://github.com/Bluscream/VRCVideoCacherPlusPlus/releases/latest/download/VRCVideoCacher.exe)
+- [Linux — VRCVideoCacher](https://github.com/Bluscream/VRCVideoCacherPlusPlus/releases/latest/download/VRCVideoCacher)
 
 **Install the original VRCVideoCacher cookie extension** (default — use these):
 - [Chrome Extension](https://chromewebstore.google.com/detail/vrcvideocacher-cookies-ex/kfgelknbegappcajiflgfbjbdpbpokge)
 - [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/vrcvideocachercookiesexporter)
 
-The VRCVideoCacherPlus extensions ([BrowserExtension/](BrowserExtension/)) are in early testing and should send cookies. You can choose: manual send & copy, automatic sharing, and/or app-triggered cookie refresh. They're not on the extension stores yet, so install them unpacked. Unpacked extensions don't update automatically: after pulling a new version, reload the extension yourself.
+The VRCVideoCacherPlusPlus extensions ([BrowserExtension/](BrowserExtension/)) support automatic sharing and app-triggered cookie refresh. You can install them unpacked from the repository folder.
 
 <details>
 <summary>How to install the unpacked extension (Chrome / Firefox)</summary>
@@ -32,41 +32,33 @@ Download or clone this repo so you have the `BrowserExtension/` folder locally.
 
 ---
 
-VRCVideoCacherPlus helps VRChat videos play. Sometimes, YouTube blocks or throttles videos when a user client does not provide cookies. This app gives YouTube the cookies while you play VRChat so that videos play smoothly and in high definition. This app also downloads videos intelligently if you turn that setting on, so that videos you play often (e.g. VRDancing) don't need to download from the internet again. You can manage the video cache, change the background download speed, and delay the video download (so that you're not downloading two video files or more at the same time).
-VRCVideoCacherPlus is based on VRCVideoCacher and adds many improvements, like HLS and streaming playlist (.m3u8) video support.
+VRCVideoCacherPlusPlus expands on VRCVideoCacherPlus with powerful regex URI rule routing, cloud share link rewrites, in-game video player toggles, and UI enhancements.
 
 ![Main screen](docs/screenshots/main-info.png)
-*Main screen — status, cache size, and what the app is doing right now.*
+*Main screen — status, cache size, tools card, video player toggle, and current download activity.*
 
-![Download speed and cache delay settings](docs/screenshots/download-settings.png)
-*Cache settings — limit background download speed and delay downloads so they don't compete with the video you're watching.*
+### PlusPlus Features
 
-![Automatic cookie refresh with the beta extension](docs/screenshots/cookie-refresh.png)
-*Cookies — the beta browser extension can refresh your YouTube cookies automatically, on request from the app.*
-
-### Features
-
-- Pause cache downloads while streaming
-- Cache download speed limit
-- Download queue & manual downloads
-- Cache HLS / streaming-video playlists
-- Other improvements
-- Builds
+- ⚡ **Regex URI Rules Engine**: Configure custom URL rules (`Cache`, `Redirect`, `Rewrite`, `Block`, `Direct`) with regex pattern matching, capture substitutions (`$1`, `$2`), and token replacements (`{url.domain}`, `{url.path}`, etc.).
+- 🎛️ **Rules Tab & Live Matcher**: Dedicated Rules management tab featuring a live Test URL matcher to preview rule evaluation in real-time, drag/button reordering (`Move Up` / `Move Down`), and modal rule editing with syntax validation.
+- ⚠️ **Unsaved Changes Guard**: Prevents accidental data loss when navigating away or exiting the application with unsaved rules.
+- 🔀 **`Rewrite` Rule Action**: Allows URLs to be transformed (such as cloud share links) while letting lower rules in the chain continue evaluating the rewritten URL.
+- 📁 **Cloud Share Direct Rewrites**: Pre-configured default rules for Dropbox (`dl=0` -> `dl=1`) and Google Drive (`/file/d/<id>/view` -> `export=download`) direct download links.
+- 🎬 **In-Game Video Player Toggle**: Dashboard card with a single toggle ("Disable Videoplayers" / "Enable Videoplayers") to immediately block or unblock all in-game video playback requests.
+- 🛠️ **Unified Tools Status Card**: Dashboard indicator tracking runtime statuses for `yt-dlp`, `Deno`, and `FFmpeg` (`Up-To-Date`, `Shim`, `Outdated`, `Missing`).
+- 📂 **Cache Browser Action Shortcuts**: Action buttons for **Watch Video**, **Copy File Path**, **Open on YouTube**, **Open Source URL**, and **Delete**.
+- 📜 **Full Playlist Ingestion**: Automatic flat-playlist extraction and metadata fetching for YouTube & YouTube Music playlist links in manual download input.
 
 <details>
-<summary><b>Details on each feature</b></summary>
+<summary><b>Details on original Plus features</b></summary>
 
 #### Pause cache downloads while streaming
 
 You can make cache downloads pause automatically when VRChat is playing a streaming video. Set the delay (in seconds) to how long after the stream stops before downloads resume. Set to 0 to disable.
 
-**Tip:** If you watch long videos or looping content, use the speed limit below instead (or alongside this).
-
 #### Cache download speed limit
 
 You can limit how fast cache downloads run (in MB/s). Set to 0 for unlimited.
-
-**Recommended usage:** Set the pause delay to 300 seconds to cover switching videos or queuing songs, and use the speed limit as a backup for longer playback.
 
 #### Download queue & manual downloads
 
@@ -75,6 +67,8 @@ You can manually queue videos for caching from the **Downloads** tab. Paste one 
 #### Cache HLS / streaming-video playlists
 
 Finished HLS streaming playlists (`.m3u8` and mpegts variants like VRDancing's beta mpegts videos) can now be cached as MP4 for later playback. Detection is content-based, so playlists served without a `.m3u8` extension still get picked up. Live streams (no `#EXT-X-ENDLIST`) are skipped, and a max-length cap is configurable in **Cache Settings** (set to 0 for unlimited).
+
+</details>
 
 **Cloud share URLs:** Dropbox links with `?dl=0` (the default share form) and Google Drive `/file/d/<id>/view` links are automatically rewritten to their direct-download form before fetching, so you can paste either form. Mega.nz isn't supported (encrypted, JS-only). Playlists whose segment URLs point to other protected files won't work — the manifest itself plus its segments must be on a directly-fetchable host.
 

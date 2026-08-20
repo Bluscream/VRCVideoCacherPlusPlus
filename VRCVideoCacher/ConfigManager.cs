@@ -52,6 +52,28 @@ public class ConfigManager
             Log.Information("Config loaded successfully.");
         }
 
+        if (Config.UriRules == null || Config.UriRules.Count == 0)
+        {
+            Config.UriRules = ConfigModel.GetDefaultRules();
+        }
+        else
+        {
+            var defaultRules = ConfigModel.GetDefaultRules();
+            foreach (var defRule in defaultRules)
+            {
+                if (!Config.UriRules.Any(r => r.Name == defRule.Name || r.Pattern == defRule.Pattern))
+                {
+                    var lastIndex = Config.UriRules.FindIndex(r => r.Name == "Everything else");
+                    if (lastIndex >= 0)
+                        Config.UriRules.Insert(lastIndex, defRule);
+                    else
+                        Config.UriRules.Add(defRule);
+                }
+            }
+
+            Config.UriRules = Config.UriRules.DistinctBy(r => r.Name + "|" + r.Pattern).ToList();
+        }
+
         if (Config.YtdlpWebServerUrl.EndsWith('/'))
             Config.YtdlpWebServerUrl = Config.YtdlpWebServerUrl.TrimEnd('/');
 
