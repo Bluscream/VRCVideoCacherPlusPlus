@@ -31,8 +31,11 @@ public class NicoVideoHandler : ISiteHandler
         if (m?.Success != true)
             return Task.FromResult(url);
 
+        // nicovideo.life is an unofficial third-party mirror, unaffiliated with this project
+        // and with niconico. Rewriting here means playing a niconico link tells that mirror
+        // what is being watched — documented under "What does it connect to?" in the README.
         var newUrl = $"https://www.nicovideo.life/watch/{m.Groups[group].Value}";
-        Log.Information("Incompatible URL, passing to external resolver: {URL}", newUrl);
+        Log.Information("Incompatible URL, passing to third-party resolver {Host}: {URL}", "nicovideo.life", newUrl);
         return Task.FromResult(newUrl);
     }
 

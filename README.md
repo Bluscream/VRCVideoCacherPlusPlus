@@ -107,6 +107,30 @@ From VRC or EAC? no.
 
 From YouTube/Google? maybe, we strongly recommend you use an alternative Google account if possible.
 
+### What does it connect to?
+
+Beyond the video URL a world asks for, VRCVideoCacher talks to:
+
+| Host | Why | When |
+| --- | --- | --- |
+| `api.github.com`, `objects.githubusercontent.com` | Update checks and downloads for yt-dlp, Deno, FFmpeg and the app itself | Startup, then hourly for yt-dlp |
+| `dl.deno.land` | Fallback Deno download if GitHub fails | Only on failure |
+| `vvc.ellyvr.dev` | Message-of-the-day from the upstream VRCVideoCacher API | Startup |
+| `api.pypy.dance`, `dbapi.vrdancing.club`, `docs.google.com` | Track titles and thumbnails for PyPyDance / VRDancing | When such a video plays |
+| `www.youtube.com`, `img.youtube.com` | Video titles and thumbnails, and validating your saved cookies | When a YouTube video plays |
+
+Two default behaviours send a request somewhere you may not expect, because a
+URL gets rewritten before it is resolved:
+
+- **niconico links are rewritten to `nicovideo.life`**, an unofficial
+  third-party mirror that is not affiliated with this project or with niconico.
+  Playing a niconico link therefore tells that mirror what you are watching.
+- **`dmn.moe` links** are rewritten from `/sr/` to `/yt/` and resolved through
+  that site.
+
+Both are inherited from upstream VRCVideoCacher. If you would rather not use
+them, the handlers are in `VRCVideoCacher/YTDL/SiteHandlers/Sites/`.
+
 ### How to circumvent YouTube bot detection
 
 In order to fix YouTube videos failing to load, you'll need to install the Chrome or Firefox extension. Visit YouTube, while signed in, at least once while VRCVideoCacher is running, and after VRCVideoCacher has obtained your cookies, the app will send those to YouTube for playing videos.
