@@ -6,6 +6,7 @@ using Serilog;
 using VRCVideoCacher.Database;
 using VRCVideoCacher.Database.Models;
 using VRCVideoCacher.Models;
+using VRCVideoCacher.Utils;
 using VRCVideoCacher.YTDL.SiteHandlers;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -28,36 +29,17 @@ public class VideoId
             .Replace("=", "");
     }
 
-    private static Process GetYtdlpProcess()
-    {
-        var process = new Process
-        {
-            StartInfo =
-            {
-                FileName = YtdlManager.YtdlPath,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            }
-        };
-
-        return process;
-    }
-
     private static async Task<(string Output, string Error, int ExitCode)> RunYtdlpAsync(List<string> args, string url)
     {
-        var ytdlpProcess = GetYtdlpProcess();
-        ytdlpProcess.StartInfo.Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"");
-        Log.Information("Starting yt-dlp with args: {args:l}", ytdlpProcess.StartInfo.Arguments);
-        ytdlpProcess.Start();
-        var output = await ytdlpProcess.StandardOutput.ReadToEndAsync();
-        var error = await ytdlpProcess.StandardError.ReadToEndAsync();
-        await ytdlpProcess.WaitForExitAsync();
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = YtdlManager.YtdlPath,
+            Arguments = YtdlManager.GenerateYtdlArgs(args, $"\"{url}\"")
+        };
+        Log.Information("Starting yt-dlp with args: {args:l}", startInfo.Arguments);
+        var (output, error, exitCode) = await ProcessRunner.RunAsync(startInfo);
         Log.Information("Finished yt-dlp");
-        return (output.Trim(), error.Trim(), ytdlpProcess.ExitCode);
+        return (output, error, exitCode);
     }
 
     public static async Task<VideoInfo?> GetVideoId(string url, bool avPro)
@@ -268,28 +250,15 @@ public class VideoId
             args.Add(ConfigManager.Config.YtdlpAdditionalArgs);
         args.Add($"\"{url}\"");
 
-        var process = new Process
+        var (output, error, exitCode) = await ProcessRunner.RunAsync(new ProcessStartInfo
         {
-            StartInfo =
-            {
-                FileName = YtdlManager.YtdlPath,
-                Arguments = string.Join(' ', args),
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-            }
-        };
-        process.Start();
-        var output = await process.StandardOutput.ReadToEndAsync();
-        var error = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+            FileName = YtdlManager.YtdlPath,
+            Arguments = string.Join(' ', args)
+        });
 
-        if (process.ExitCode != 0)
+        if (exitCode != 0)
         {
-            Log.Error("Failed to get playlist entries: {Error}", error.Trim());
+            Log.Error("Failed to get playlist entries: {Error}", error);
             return results;
         }
 
