@@ -259,7 +259,7 @@ internal sealed class Program
         if (OperatingSystem.IsWindows())
             AutoStartShortcut.TryUpdateShortcutPath();
         WebServer.Init();
-        FileTools.BackupAllYtdl();
+        FileTools.ApplyPatchSettings();
         await BulkPreCache.DownloadFileList();
 
         if (ConfigManager.Config.YtdlpUseCookies && !IsCookiesEnabledAndValid())
