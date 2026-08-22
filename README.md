@@ -107,6 +107,22 @@ From VRC or EAC? no.
 
 From YouTube/Google? maybe, we strongly recommend you use an alternative Google account if possible.
 
+### Where are the settings stored?
+
+In `Config.json`, in the same folder the original VRCVideoCacher uses
+(`%AppData%\VRCVideoCacher` on Windows, `~/.config/VRCVideoCacher` on Linux).
+The PlusPlus-only settings — including your URL rules — live under a `Plus` key
+in that file.
+
+> **If you run the original VRCVideoCacher again, it will rewrite `Config.json`
+> and drop the `Plus` block.** Your rules and Plus settings would go back to
+> defaults. The app tells you this once, on first run.
+
+Upgrading from an older PlusPlus build moves your old `PlusConfig.json` into
+`Config.json` automatically and leaves a copy at `PlusConfig.json.bak`. That
+backup is a snapshot from the moment of the move and is never updated — if you
+want a current one, copy `Config.json` somewhere yourself.
+
 ### What does it connect to?
 
 Beyond the video URL a world asks for, VRCVideoCacher talks to:
