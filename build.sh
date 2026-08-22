@@ -10,24 +10,30 @@
 #   --bump      raise the patch component of <Version> in VRCVideoCacher.csproj
 #   --lint      locale check, extension check, strict compile, full test suite
 #   --build     publish yt-dlp-stub and VRCVideoCacher for Steam (Linux x64)
+#   --artifacts publish the release zips for win-x64 and linux-x64 into dist/
+#   --stop      stop the deployed app
 #   --deploy    rsync the publish output into the Steam directory
+#   --start     start the deployed app through Steam and tail its log
+#   --restart   --stop and --start together
 #   --commit    commit the working tree      (-m MESSAGE, defaults to "Release vX.Y.Z")
 #   --push      push the current branch and any tag created by --bump
-#   --release   create the GitHub release for the current version (notes are generated;
-#               binaries are attached by the CI publish job, not from here)
+#   --release   create the GitHub release, attaching the zips built by --artifacts
 #
-#   --all       everything except --deploy, which is local-only
+#   --all       everything except the local-only actions (deploy, stop, start)
 #   -n|--dry-run  print each action instead of running the ones that change the world
 #
 # Running it with no arguments at all builds and deploys, which is what it always did.
 # Passing any flag turns that off, so nothing gets deployed unless you asked for it.
 #
-# Restarting the app is deliberately not one of the actions. It used to be --restart,
-# which killed whatever was running, relaunched through Steam and guessed at success
-# from a five-second sleep — too blunt for something you usually want to watch happen.
-# Start it yourself when you are ready:
+# Actions run in this order, which is why --stop sits before --deploy and --start after:
 #
-#   steam steam://rungameid/4296960
+#   bump  lint  build  artifacts  stop  deploy  start  commit  push  release
+#
+# GitHub Actions does not run on this account, so .github/workflows/ci.yml is disabled
+# and its work happens here instead: --lint is the build-and-test and browser-extension
+# jobs, --artifacts is the publish job. Running the workflow locally under `act` was the
+# alternative and is not worth it — it wants a container runtime and a runner image to
+# do what is, in the end, two dotnet publishes.
 #
 # Everything machine-specific is an environment variable with the author's setup as the
 # default, so this is overridable rather than only working on one machine:
@@ -42,12 +48,17 @@ TARGET_DIR="${VVC_TARGET_DIR:-/run/media/system/Data/Games/Steam/steamapps/commo
 CONTAINER_NAME="${VVC_CONTAINER-arch}"
 TRIMMED="${VVC_TRIMMED:-0}"
 TMP_OUT="${SCRIPT_DIR}/output_steam_linux"
+DIST_DIR="${SCRIPT_DIR}/dist"
+STEAM_APP_ID=4296960
 CSPROJ="${SCRIPT_DIR}/VRCVideoCacher/VRCVideoCacher.csproj"
 
 DO_BUMP=false
 DO_LINT=false
 DO_BUILD=false
+DO_ARTIFACTS=false
+DO_STOP=false
 DO_DEPLOY=false
+DO_START=false
 DO_COMMIT=false
 DO_PUSH=false
 DO_RELEASE=false
@@ -60,12 +71,16 @@ while [ $# -gt 0 ]; do
         --bump)    DO_BUMP=true ;;
         --lint)    DO_LINT=true ;;
         --build)   DO_BUILD=true ;;
+        --artifacts) DO_ARTIFACTS=true ;;
+        --stop)    DO_STOP=true ;;
         --deploy)  DO_DEPLOY=true ;;
+        --start)   DO_START=true ;;
+        --restart) DO_STOP=true; DO_START=true ;;
         --commit)  DO_COMMIT=true ;;
         --push)    DO_PUSH=true ;;
         --release) DO_RELEASE=true ;;
         --all)
-            DO_BUMP=true; DO_LINT=true; DO_BUILD=true
+            DO_BUMP=true; DO_LINT=true; DO_BUILD=true; DO_ARTIFACTS=true
             DO_COMMIT=true; DO_PUSH=true; DO_RELEASE=true
             ;;
         -n|--dry-run) DRY_RUN=true ;;
@@ -74,7 +89,7 @@ while [ $# -gt 0 ]; do
             COMMIT_MESSAGE="$2"; shift
             ;;
         -m=*|--message=*) COMMIT_MESSAGE="${1#*=}" ;;
-        -h|--help) sed -n '2,37p' "$0" | sed 's/^# \?//'; exit 0 ;;
+        -h|--help) sed -n '2,43p' "$0" | sed 's/^# \?//'; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; exit 2 ;;
     esac
     shift
@@ -188,6 +203,59 @@ if [ "$DO_BUILD" = true ]; then
         -p:PublishTrimmed="$([ "${TRIMMED}" = "1" ] && echo true || echo false)"
 fi
 
+# --- artifacts --------------------------------------------------------------------------
+# The publish job from ci.yml, run here because Actions does not run on this account.
+# Worth keeping distinct from --build: this is Release, trimmed and single-file per the
+# csproj, which is the only configuration that exercises the trimmer. A Debug or loose
+# build cannot reproduce the trimmer removing something only reflection reaches.
+if [ "$DO_ARTIFACTS" = true ]; then
+    command -v zip >/dev/null || fail "zip is not installed; cannot package artifacts"
+
+    rm -rf "${DIST_DIR}"
+    mkdir -p "${DIST_DIR}"
+
+    for RID in win-x64 linux-x64; do
+        step "Publishing ${RID} (Release, trimmed, v${VERSION})"
+        OUT="${SCRIPT_DIR}/out/${RID}"
+        rm -rf "${OUT}"
+        dotnet_run publish "$CSPROJ" -c Release -r "${RID}" -o "${OUT}" -warnaserror \
+            || fail "publishing ${RID} failed"
+
+        ZIP="${DIST_DIR}/VRCVideoCacher-${RID}.zip"
+        (cd "${OUT}" && zip -qr "${ZIP}" .) || fail "packaging ${RID} failed"
+        echo "$(du -h "${ZIP}" | cut -f1)  ${ZIP}"
+    done
+fi
+
+# --- stop -------------------------------------------------------------------------------
+if [ "$DO_STOP" = true ]; then
+    step "Stopping VRCVideoCacher"
+    # Match the deployed binary by full path. A bare `pkill -f VRCVideoCacher` also matches
+    # this script, an editor with the project open, or a shell sitting in the source tree.
+    if [ "$DRY_RUN" = true ]; then
+        # Not just `run pkill`: the wait-and-verify below would then poll a process that
+        # was never signalled and report a failure to stop something nobody stopped.
+        echo "[dry-run] pkill -f ^${TARGET_DIR}/VRCVideoCacher"
+    elif pgrep -f "^${TARGET_DIR}/VRCVideoCacher" >/dev/null; then
+        # SIGTERM first so the shutdown token fires and the loops unwind; SIGKILL only if
+        # it is still there afterwards.
+        pkill -f "^${TARGET_DIR}/VRCVideoCacher" || true
+        for _ in $(seq 1 10); do
+            pgrep -f "^${TARGET_DIR}/VRCVideoCacher" >/dev/null || break
+            sleep 1
+        done
+        if pgrep -f "^${TARGET_DIR}/VRCVideoCacher" >/dev/null; then
+            echo "Still running after 10s, sending SIGKILL."
+            pkill -9 -f "^${TARGET_DIR}/VRCVideoCacher" || true
+            sleep 1
+        fi
+        pgrep -f "^${TARGET_DIR}/VRCVideoCacher" >/dev/null \
+            && fail "could not stop VRCVideoCacher" || echo "Stopped."
+    else
+        echo "Not running."
+    fi
+fi
+
 # --- deploy -----------------------------------------------------------------------------
 if [ "$DO_DEPLOY" = true ]; then
     [ -d "${TMP_OUT}" ] || fail "nothing to deploy: ${TMP_OUT} does not exist (run --build)"
@@ -196,6 +264,43 @@ if [ "$DO_DEPLOY" = true ]; then
     run mkdir -p "${TARGET_DIR}"
     run rsync -av --delete --exclude='CachedAssets' --exclude='logs' "${TMP_OUT}/" "${TARGET_DIR}/"
     echo "=== Deployment Complete ==="
+fi
+
+# --- start ------------------------------------------------------------------------------
+if [ "$DO_START" = true ]; then
+    step "Starting VRCVideoCacher"
+    if [ "$DRY_RUN" = true ]; then
+        echo "[dry-run] steam steam://rungameid/${STEAM_APP_ID}"
+    else
+        (nohup steam "steam://rungameid/${STEAM_APP_ID}" >/dev/null 2>&1 \
+            || nohup xdg-open "steam://rungameid/${STEAM_APP_ID}" >/dev/null 2>&1 &)
+
+        # Steam takes its time, and how long varies. Poll rather than sleeping a fixed
+        # five seconds and declaring failure — that reported a crash on every slow launch.
+        for _ in $(seq 1 30); do
+            pgrep -f "^${TARGET_DIR}/VRCVideoCacher" >/dev/null && break
+            sleep 1
+        done
+
+        PIDS=$(pgrep -f "^${TARGET_DIR}/VRCVideoCacher" || true)
+        if [ -z "${PIDS}" ]; then
+            CRASH_REPORT="${XDG_CONFIG_HOME:-${HOME}/.config}/VRCVideoCacher/CRASH_REPORT.txt"
+            if [ -f "${CRASH_REPORT}" ]; then
+                step "CRASH_REPORT.txt (check the timestamp — it may predate this run)"
+                cat "${CRASH_REPORT}"
+            fi
+            fail "VRCVideoCacher did not start within 30s"
+        fi
+
+        echo "Running (PIDs: ${PIDS})"
+        sleep 3
+        LOG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/VRCVideoCacher/Logs"
+        LOG_FILE=$(ls -t "${LOG_DIR}"/VRCVideoCacher*.log 2>/dev/null | head -n 1 || true)
+        if [ -n "${LOG_FILE}" ] && [ -f "${LOG_FILE}" ]; then
+            step "Last 25 log lines (${LOG_FILE})"
+            tail -n 25 "${LOG_FILE}"
+        fi
+    fi
 fi
 
 # --- commit -----------------------------------------------------------------------------
@@ -245,8 +350,18 @@ if [ "$DO_RELEASE" = true ]; then
         fail "tag ${TAG} is not on origin; run --push first"
     fi
 
+    # Attaching the zips is the whole point now that no CI job uploads them. Refuse
+    # rather than publishing a release with no downloads in it.
+    ASSETS=()
+    for RID in win-x64 linux-x64; do
+        ZIP="${DIST_DIR}/VRCVideoCacher-${RID}.zip"
+        [ -f "$ZIP" ] || fail "missing ${ZIP} — add --artifacts"
+        ASSETS+=("$ZIP")
+    done
+
     run gh release create "$TAG" \
         --title "$TAG" \
         --generate-notes \
+        "${ASSETS[@]}" \
         || fail "creating the release failed"
 fi

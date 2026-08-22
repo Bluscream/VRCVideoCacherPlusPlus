@@ -1,9 +1,19 @@
 name: CI
 
+# Disabled: GitHub Actions does not run on this account, so every push produced a failed
+# run and a notification. Left in the repo rather than deleted because it still documents
+# what a full check is, and it is one edit away from working again for anyone who forks.
+#
+# Everything below now runs locally instead — `./build.sh --lint` covers build-and-test
+# and browser-extension, and `./build.sh --artifacts` covers publish. Re-enable by
+# restoring the push/pull_request triggers:
+#
+#   on:
+#     push:
+#       branches: [main]
+#     pull_request:
+#     workflow_dispatch:
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 jobs:

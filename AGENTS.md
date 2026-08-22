@@ -12,24 +12,35 @@ There is no `dotnet` on the host; it lives in a distrobox container.
 distrobox enter arch -- dotnet build VRCVideoCacher.sln -warnaserror
 ```
 
-`build.sh` is the pipeline. Actions run in dependency order regardless of argument
-order, any failure aborts the rest, and every dotnet call carries `-warnaserror`.
+`build.sh` is the pipeline. Actions run in this order no matter what order they are
+passed, any failure aborts the rest, and every dotnet call carries `-warnaserror`:
 
-```bash
-./build.sh --lint                      # locales, extension, strict compile, tests
-./build.sh --build --deploy            # publish + rsync into the Steam dir
-./build.sh --all --dry-run             # bump, lint, build, commit, push, release
+```
+bump  lint  build  artifacts  stop  deploy  start  commit  push  release
 ```
 
-Always `--lint` before committing. Restarting the deployed app is manual and
-deliberate — `build.sh` will not do it for you:
-
 ```bash
-steam steam://rungameid/4296960
+./build.sh --lint                          # locales, extension, strict compile, tests
+./build.sh --build --stop --deploy --start # or --restart for the stop/start pair
+./build.sh --all --dry-run                 # rehearse the whole release
 ```
 
-**Never deploy or restart while the user has the app running** unless they asked for
-it in this session. Compiling and linting are always fine.
+Always `--lint` before committing.
+
+**GitHub Actions does not run on this account.** `.github/workflows/ci.yml` is
+disabled (`workflow_dispatch` only) because every push produced a failed run and a
+notification. Its work happens locally instead — `--lint` is the build-and-test and
+browser-extension jobs, `--artifacts` is the publish job, and `--release` attaches
+the zips `--artifacts` produced. Do not re-enable the triggers. Running the workflow
+under `act` was considered and rejected: it wants a container runtime and a runner
+image to do what amounts to two `dotnet publish` calls.
+
+`--artifacts` is the only step that publishes Release/trimmed/single-file, so it is
+the only one that exercises the trimmer. A Debug build cannot reproduce the trimmer
+dropping something that only reflection reaches — run it before releasing.
+
+**Never stop, deploy to, or restart the app while the user has it running** unless
+they asked for it in this session. Compiling and linting are always fine.
 
 ## Traps this codebase keeps setting
 
