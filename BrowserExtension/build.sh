@@ -50,13 +50,26 @@ fi
 
 command -v zip >/dev/null || { echo "zip is not installed" >&2; exit 1; }
 
+DIST_DIR="$(pwd)/../dist"
 echo "=== Packaging ==="
-rm -rf dist
-mkdir -p dist
+rm -rf "$DIST_DIR"
+mkdir -p "$DIST_DIR"
 for browser in chrome firefox; do
-    out="../dist/VRCVideoCacherPlusPlus-${browser}-${chrome_version}.zip"
+    out="${DIST_DIR}/VRCVideoCacherPlusPlus-${browser}-${chrome_version}.zip"
     (cd "$browser" && zip -qr "$out" . -x '.*')
     echo "  dist/$(basename "$out")"
 done
+
+# Copy Firefox zip to xpi
+cp "${DIST_DIR}/VRCVideoCacherPlusPlus-firefox-${chrome_version}.zip" "${DIST_DIR}/VRCVideoCacherPlusPlus-firefox-${chrome_version}.xpi"
+echo "  dist/VRCVideoCacherPlusPlus-firefox-${chrome_version}.xpi"
+
+# Build Chrome CRX
+if command -v npx >/dev/null; then
+    npx -y crx3 chrome -p chrome.pem -o "${DIST_DIR}/VRCVideoCacherPlusPlus-chrome-${chrome_version}.crx"
+    echo "  dist/VRCVideoCacherPlusPlus-chrome-${chrome_version}.crx"
+else
+    echo "WARNING: npx not found, skipping CRX packaging" >&2
+fi
 
 echo "=== Done ==="
