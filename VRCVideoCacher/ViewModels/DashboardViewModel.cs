@@ -55,12 +55,24 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty]
     private bool _videoPlayersEnabled = true;
 
+    [ObservableProperty]
+    private string? _motd;
+
+    public bool HasMotd => !string.IsNullOrWhiteSpace(Motd);
+
+    partial void OnMotdChanged(string? value) => OnPropertyChanged(nameof(HasMotd));
+
     public DashboardViewModel()
     {
         VideoPlayersEnabled = ConfigManager.Config.VideoPlayersEnabled;
         ServerUrl = ConfigManager.Config.YtdlpWebServerUrl;
         MaxCacheSize = ConfigManager.Config.CacheMaxSizeInGb;
         HostState = ElevatorManager.HasHostsLine;
+        Motd = VvcConfigService.CurrentConfig.Motd;
+        VvcConfigService.OnApiConfigChanged += () =>
+        {
+            Dispatcher.UIThread.Post(() => Motd = VvcConfigService.CurrentConfig.Motd);
+        };
 
         // Initial data load
         RefreshData();
