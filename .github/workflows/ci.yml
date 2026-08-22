@@ -27,6 +27,15 @@ jobs:
       - name: Test
         run: dotnet test VRCVideoCacher.sln -c Debug --no-build --verbosity normal
 
+  browser-extension:
+    # chrome/ and firefox/ each have to contain their own copy of the shared files, so they
+    # can silently diverge when a fix lands in only one. This is the cheap guard against that.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shared extension files
+        run: ./BrowserExtension/build.sh --check
+
   publish:
     # PublishTrimmed only takes effect on publish, so build-and-test above never exercises
     # it. This job is what would catch the trimmer removing something that only reflection
