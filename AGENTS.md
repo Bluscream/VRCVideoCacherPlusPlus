@@ -30,14 +30,23 @@ Always `--lint` before committing.
 **GitHub Actions does not run on this account.** `.github/workflows/ci.yml` is
 disabled (`workflow_dispatch` only) because every push produced a failed run and a
 notification. Its work happens locally instead — `--lint` is the build-and-test and
-browser-extension jobs, `--artifacts` is the publish job, and `--release` attaches
-the zips `--artifacts` produced. Do not re-enable the triggers. Running the workflow
-under `act` was considered and rejected: it wants a container runtime and a runner
-image to do what amounts to two `dotnet publish` calls.
+browser-extension jobs, `--artifacts` is the publish job. Do not re-enable the
+triggers. Running the workflow under `act` was considered and rejected: it wants a
+container runtime and a runner image to do what amounts to two `dotnet publish` calls.
 
-`--artifacts` is the only step that publishes Release/trimmed/single-file, so it is
-the only one that exercises the trimmer. A Debug build cannot reproduce the trimmer
-dropping something that only reflection reaches — run it before releasing.
+**A release is always exactly four assets**: `VRCVideoCacher-win-x64.zip`,
+`VRCVideoCacher-linux-x64.zip`, the Chrome `.crx` and the Firefox `.xpi`. `--release`
+implies `--artifacts` so it builds them rather than trusting what is in `dist/`, and
+both check the set is complete — the `.crx` is silently skipped when `npx` is missing,
+which would otherwise ship a release with no Chrome download. The extension `.zip`
+byproducts stay in `dist/` and are deliberately not attached.
+
+`--artifacts` is also the only step that publishes Release/trimmed/single-file, so it
+is the only one that exercises the trimmer. A Debug build cannot reproduce the trimmer
+dropping something that only reflection reaches.
+
+`dist/` is shared between `build.sh` and `BrowserExtension/build.sh`; neither may
+`rm -rf` it, only its own outputs.
 
 **Never stop, deploy to, or restart the app while the user has it running** unless
 they asked for it in this session. Compiling and linting are always fine.

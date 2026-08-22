@@ -50,10 +50,15 @@ fi
 
 command -v zip >/dev/null || { echo "zip is not installed" >&2; exit 1; }
 
+# Shared with the application's release artifacts, so only this script's own outputs may
+# be cleared here. `rm -rf "$DIST_DIR"` would delete the VRCVideoCacher-*.zip files that
+# ../build.sh --artifacts puts in the same directory, and whichever ran second would win.
 DIST_DIR="$(pwd)/../dist"
 echo "=== Packaging ==="
-rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
+rm -f "${DIST_DIR}"/VRCVideoCacherPlusPlus-*.zip \
+      "${DIST_DIR}"/VRCVideoCacherPlusPlus-*.xpi \
+      "${DIST_DIR}"/VRCVideoCacherPlusPlus-*.crx
 for browser in chrome firefox; do
     out="${DIST_DIR}/VRCVideoCacherPlusPlus-${browser}-${chrome_version}.zip"
     (cd "$browser" && zip -qr "$out" . -x '.*')
@@ -72,5 +77,7 @@ else
     echo "WARNING: npx not found, skipping CRX packaging" >&2
 fi
 
-# Retain extension .zip packages in release assets alongside .xpi and .crx
+# The .zip files stay in dist/ as byproducts — .xpi is a copy of the Firefox zip and the
+# .crx is built from chrome/ — but ../build.sh --release attaches only the four real
+# assets, so a release does not list the same extension twice in two formats.
 echo "=== Done ==="

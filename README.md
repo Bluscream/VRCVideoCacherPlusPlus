@@ -110,21 +110,51 @@ From VRC or EAC? no.
 
 From YouTube/Google? maybe, we strongly recommend you use an alternative Google account if possible.
 
+### Why can't it always stop a video that is already playing?
+
+Cutting a connection that belongs to *another* program is a privileged operation, and
+VRChat streaming straight from a CDN is exactly that case. Videos served from PlusPlus's
+own cache are ours to close and always stop instantly; direct streams need permission
+from the operating system.
+
+Without it, blocking still works for everything new — the video that is already midway
+through simply plays to the end. The app says which of these happened rather than
+claiming success.
+
+**Linux.** Closing someone else's socket needs the `CAP_NET_ADMIN` capability. Grant it
+once and severing works silently from then on, with no password prompt ever:
+
+```bash
+sudo setcap cap_net_admin+ep /path/to/VRCVideoCacher
+```
+
+Capabilities are attached to the file, so **this has to be redone after every update** —
+the updater replaces the binary. If you would rather not grant it, the `Sever Connection`
+buttons ask for authorisation through your desktop's usual dialog (polkit, so KDE, GNOME
+and the rest all work) each time you press one.
+
+**Windows.** Run VRCVideoCacher as administrator, or accept the UAC prompt when you press
+`Sever Connection`. IPv6 connections cannot be closed at all on Windows — it has never
+provided an API for it, at any privilege level — so those are reported as unsupported
+rather than as a permissions problem.
+
+Either way, the automatic "Disable Videoplayers" toggle never prompts. It blocks new
+requests and closes what it can, silently.
+
 ### Where are the settings stored?
 
 In `Config.json`, in the same folder the original VRCVideoCacher uses
 (`%AppData%\VRCVideoCacher` on Windows, `~/.config/VRCVideoCacher` on Linux).
-The PlusPlus-only settings — including your URL rules — live under a `Plus` key
-in that file.
+There is one config file, shared with the original — PlusPlus settings, including
+your URL rules, sit alongside the normal ones at the top level.
 
 > **If you run the original VRCVideoCacher again, it will rewrite `Config.json`
-> and drop the `Plus` block.** Your rules and Plus settings would go back to
-> defaults. The app tells you this once, on first run.
+> and drop the settings it does not recognise.** Your rules and PlusPlus settings
+> would go back to defaults. The app tells you this once, on first run.
 
-Upgrading from an older PlusPlus build moves your old `PlusConfig.json` into
-`Config.json` automatically and leaves a copy at `PlusConfig.json.bak`. That
-backup is a snapshot from the moment of the move and is never updated — if you
-want a current one, copy `Config.json` somewhere yourself.
+Coming from an older PlusPlus build, your previous `PlusConfig.json` is left where
+it is and no longer read. Settings are not carried across automatically — copy any
+you want to keep into `Config.json` yourself.
 
 ### What does it connect to?
 

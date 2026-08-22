@@ -10,14 +10,15 @@
 #   --bump      raise the patch component of <Version> in VRCVideoCacher.csproj
 #   --lint      locale check, extension check, strict compile, full test suite
 #   --build     publish yt-dlp-stub and VRCVideoCacher for Steam (Linux x64)
-#   --artifacts publish the release zips for win-x64 and linux-x64 into dist/
+#   --artifacts build every release asset into dist/: the win-x64 and linux-x64 zips
+#               and the Chrome .crx and Firefox .xpi (implied by --release)
 #   --stop      stop the deployed app
 #   --deploy    rsync the publish output into the Steam directory
 #   --start     start the deployed app through Steam and tail its log
 #   --restart   --stop and --start together
 #   --commit    commit the working tree      (-m MESSAGE, defaults to "Release vX.Y.Z")
 #   --push      push the current branch and any tag created by --bump
-#   --release   create the GitHub release, attaching the zips built by --artifacts
+#   --release   create the GitHub release, attaching all four assets
 #
 #   --all       everything except the local-only actions (deploy, stop, start)
 #   -n|--dry-run  print each action instead of running the ones that change the world
@@ -78,7 +79,9 @@ while [ $# -gt 0 ]; do
         --restart) DO_STOP=true; DO_START=true ;;
         --commit)  DO_COMMIT=true ;;
         --push)    DO_PUSH=true ;;
-        --release) DO_RELEASE=true ;;
+        # A release is only ever the complete set of assets, so it builds them itself
+        # rather than trusting whatever happens to be left in dist/ from an older run.
+        --release) DO_RELEASE=true; DO_ARTIFACTS=true ;;
         --all)
             DO_BUMP=true; DO_LINT=true; DO_BUILD=true; DO_ARTIFACTS=true
             DO_COMMIT=true; DO_PUSH=true; DO_RELEASE=true
@@ -89,7 +92,7 @@ while [ $# -gt 0 ]; do
             COMMIT_MESSAGE="$2"; shift
             ;;
         -m=*|--message=*) COMMIT_MESSAGE="${1#*=}" ;;
-        -h|--help) sed -n '2,43p' "$0" | sed 's/^# \?//'; exit 0 ;;
+        -h|--help) sed -n '2,44p' "$0" | sed 's/^# \?//'; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; exit 2 ;;
     esac
     shift
@@ -130,6 +133,32 @@ read_version() {
 
 VERSION="$(read_version)"
 [ -n "$VERSION" ] || fail "could not read <Version> from ${CSPROJ}"
+
+# A release is always the same four files. Checked as a set rather than trusted,
+# because the .crx silently does not get built when npx is unavailable — which would
+# otherwise produce a release quietly missing the Chrome download.
+RELEASE_ASSETS=()
+require_assets() {
+    local missing=0
+    local found
+    RELEASE_ASSETS=()
+    for pattern in \
+        "VRCVideoCacher-win-x64.zip" \
+        "VRCVideoCacher-linux-x64.zip" \
+        "VRCVideoCacherPlusPlus-chrome-*.crx" \
+        "VRCVideoCacherPlusPlus-firefox-*.xpi"
+    do
+        found=$(find "${DIST_DIR}" -maxdepth 1 -name "$pattern" -print -quit 2>/dev/null || true)
+        if [ -z "$found" ]; then
+            printf '  MISSING  %s\n' "$pattern" >&2
+            missing=1
+        else
+            RELEASE_ASSETS+=("$found")
+            printf '  %-6s %s\n' "$(du -h "$found" | cut -f1)" "$(basename "$found")"
+        fi
+    done
+    [ "$missing" -eq 0 ] || fail "dist/ is missing release assets"
+}
 
 require_clean_tree() {
     git -C "$SCRIPT_DIR" diff --quiet && git -C "$SCRIPT_DIR" diff --cached --quiet \
@@ -214,6 +243,11 @@ if [ "$DO_ARTIFACTS" = true ]; then
     rm -rf "${DIST_DIR}"
     mkdir -p "${DIST_DIR}"
 
+    step "Packaging browser extensions"
+    # Also re-runs the shared-file drift check, so this cannot ship a chrome/ and a
+    # firefox/ that have silently diverged.
+    "${SCRIPT_DIR}/BrowserExtension/build.sh" || fail "packaging the browser extensions failed"
+
     for RID in win-x64 linux-x64; do
         step "Publishing ${RID} (Release, trimmed, v${VERSION})"
         OUT="${SCRIPT_DIR}/out/${RID}"
@@ -223,8 +257,10 @@ if [ "$DO_ARTIFACTS" = true ]; then
 
         ZIP="${DIST_DIR}/VRCVideoCacher-${RID}.zip"
         (cd "${OUT}" && zip -qr "${ZIP}" .) || fail "packaging ${RID} failed"
-        echo "$(du -h "${ZIP}" | cut -f1)  ${ZIP}"
     done
+
+    step "Release assets"
+    require_assets
 fi
 
 # --- stop -------------------------------------------------------------------------------
@@ -350,18 +386,15 @@ if [ "$DO_RELEASE" = true ]; then
         fail "tag ${TAG} is not on origin; run --push first"
     fi
 
-    # Attaching the zips is the whole point now that no CI job uploads them. Refuse
-    # rather than publishing a release with no downloads in it.
-    ASSETS=()
-    for RID in win-x64 linux-x64; do
-        ZIP="${DIST_DIR}/VRCVideoCacher-${RID}.zip"
-        [ -f "$ZIP" ] || fail "missing ${ZIP} — add --artifacts"
-        ASSETS+=("$ZIP")
-    done
+    # Attaching the assets is the whole point now that no CI job uploads them.
+    # Exactly the four named assets. A glob over dist/ would also sweep up the
+    # extension .zip byproducts the .crx and .xpi are made from, and a release listing
+    # six downloads where two are duplicates of the other two is just confusing.
+    require_assets
 
     run gh release create "$TAG" \
         --title "$TAG" \
         --generate-notes \
-        "${ASSETS[@]}" \
+        "${RELEASE_ASSETS[@]}" \
         || fail "creating the release failed"
 fi
