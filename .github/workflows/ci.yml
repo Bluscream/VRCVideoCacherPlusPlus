@@ -36,6 +36,9 @@ jobs:
       - name: Check shared extension files
         run: ./BrowserExtension/build.sh --check
 
+      - name: Check locales
+        run: python3 scripts/lint-locales.py
+
   publish:
     # PublishTrimmed only takes effect on publish, so build-and-test above never exercises
     # it. This job is what would catch the trimmer removing something that only reflection
