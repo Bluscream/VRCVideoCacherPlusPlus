@@ -103,6 +103,54 @@ grep, not the build. Use an explicit `if ... then ... else ... fi`.
 **Sandbox live testing.** `XDG_CONFIG_HOME=/tmp/vvc-sandbox` keeps the user's real
 config and cache database untouched.
 
+## Telling the user something
+
+Pick the quietest thing that does the job. In rough order of intrusiveness:
+
+| Want | Use |
+| --- | --- |
+| Diagnostics, background progress | `Log.Debug` / `Log.Information` — Logs tab |
+| Something degraded but recoverable | `Log.Warning` |
+| A short result next to the thing it concerns | tab-local `StatusMessage` + `StatusMessageColor` |
+| Persistent app-wide state | `MainWindowViewModel.StatusText` (status bar) |
+| The user has to decide | `PopupWindow.CreateConfirm` |
+| Broadcast news | MOTD banner |
+
+**`Log.Error` is not just a log line — it opens a modal.** `UiLogSink` shows a
+`PopupWindow` for anything at Error or above (when `ErrorPopups` is on), with
+identical messages suppressed for a minute. Reserve it for "the thing you asked for
+did not happen". Anything routine that fails — a CDN retry, a missing optional tool —
+is `Warning` or `Debug`, or you are throwing a dialog at somebody in VR.
+
+**Status bar** is `MainWindowViewModel.StatusText` (left) and `CacheStatusText`
+(right), bound in `MainWindow.axaml`. It is for standing state — "server running",
+cache size — not transient results. It survives a tab switch, so anything written
+there stays until something else overwrites it.
+
+**Tab-local status** is the `StatusMessage` / `StatusMessageColor` pair that
+`ActiveConnectionsViewModel`, `SettingsViewModel` and `HistoryViewModel` each carry,
+usually behind a small `SetStatus(message, colorHex)`. This is the default for
+per-action feedback. Existing colours: `#81C784` success, `#FFB74D` pending or
+unsaved, and red for failure.
+
+**Dialogs** are `Views/PopupWindow`. Message only:
+`await new PopupWindow(text).ShowDialog(owner)`. Confirmation:
+
+```csharp
+var dialog = PopupWindow.CreateConfirm(message, Localizer.Get("Yes"), Localizer.Get("No"));
+dialog.Title = Localizer.Get("ConfirmClearCacheTitle");
+await dialog.ShowDialog(owner);
+if (dialog.Confirmed) { ... }
+```
+
+`SetFolderHint(label, path)` adds a clickable path, for "put the file here" errors.
+There is no text-prompt dialog — add a field to the relevant view instead of
+inventing one.
+
+Every one of these takes a `Localizer.Get` key, never a literal. Owner windows can be
+null during startup: `App.MainWindow` is null until the UI exists, and force-unwrapping
+it in a log sink once took the whole application down over a log line.
+
 ## Style
 
 Match upstream — this fork should read like the same project.
