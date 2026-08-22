@@ -394,8 +394,17 @@ if [ "$DO_RELEASE" = true ]; then
     step "Creating GitHub release ${TAG}"
     command -v gh >/dev/null || fail "gh is not installed; cannot create a release"
 
+    # `gh release create` creates a draft, uploads, then publishes. Interrupted partway —
+    # a 100MB upload is not quick — it leaves a draft behind, and a plain "already exists"
+    # check then blocks every retry with nothing to do about it. Resume instead.
+    RESUME_DRAFT=false
     if gh release view "$TAG" >/dev/null 2>&1; then
-        fail "release ${TAG} already exists"
+        if [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" = "true" ]; then
+            echo "Found an unfinished draft for ${TAG}; resuming it."
+            RESUME_DRAFT=true
+        else
+            fail "release ${TAG} already exists and is published"
+        fi
     fi
 
     # The tag has to be on the remote first or gh will create one from whatever the
@@ -410,9 +419,26 @@ if [ "$DO_RELEASE" = true ]; then
     # six downloads where two are duplicates of the other two is just confusing.
     require_assets
 
-    run gh release create "$TAG" \
-        --title "$RELEASE_TITLE" \
-        --generate-notes \
-        "${RELEASE_ASSETS[@]}" \
-        || fail "creating the release failed"
+    if [ "$RESUME_DRAFT" = true ]; then
+        # --clobber so a half-finished asset from the interrupted run is replaced.
+        run gh release upload "$TAG" --clobber "${RELEASE_ASSETS[@]}" \
+            || fail "uploading the release assets failed"
+        run gh release edit "$TAG" --draft=false \
+            || fail "publishing the draft failed"
+    else
+        run gh release create "$TAG" \
+            --title "$RELEASE_TITLE" \
+            --generate-notes \
+            "${RELEASE_ASSETS[@]}" \
+            || fail "creating the release failed"
+    fi
+
+    # gh exits before GitHub finishes processing large uploads, and an asset stuck in
+    # "starting" is a broken download link on a published release.
+    if [ "$DRY_RUN" = false ]; then
+        UPLOADED=$(gh release view "$TAG" --json assets -q '[.assets[]|select(.state=="uploaded")]|length')
+        [ "$UPLOADED" = "${#RELEASE_ASSETS[@]}" ] \
+            || fail "only ${UPLOADED}/${#RELEASE_ASSETS[@]} assets finished uploading"
+        echo "Published ${TAG} with ${UPLOADED} assets."
+    fi
 fi
