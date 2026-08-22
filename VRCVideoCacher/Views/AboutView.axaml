@@ -36,17 +36,6 @@
                 </StackPanel>
             </Border>
 
-            <!-- Message of the day. Hidden entirely when the API returned nothing. -->
-            <Border Background="#2d2d2d" CornerRadius="8" Padding="20" IsVisible="{Binding HasMotd}">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="{l:Localize MessageOfTheDay}" FontWeight="SemiBold" FontSize="16"/>
-                    <!-- Do not also set Text here: Text and Inlines are mutually exclusive. -->
-                    <TextBlock controls:MarkdownText.Text="{Binding Motd}"
-                               TextWrapping="Wrap"
-                               Foreground="#DDDDDD"/>
-                </StackPanel>
-            </Border>
-
             <!-- Stats -->
             <Border Background="#2d2d2d" CornerRadius="8" Padding="20">
                 <views:StatsView DataContext="{Binding Stats}"/>
