@@ -41,9 +41,12 @@ VRCVideoCacherPlusPlus expands on VRCVideoCacherPlus with powerful regex URI rul
 
 - ⚡ **Regex URI Rules Engine**: Configure custom URL rules (`Cache`, `Redirect`, `Rewrite`, `Block`, `Direct`) with regex pattern matching, capture substitutions (`$1`, `$2`), and token replacements (`{url.domain}`, `{url.path}`, etc.).
 - 🎛️ **Rules Tab & Live Matcher**: Dedicated Rules management tab featuring a live Test URL matcher to preview rule evaluation in real-time, drag/button reordering (`Move Up` / `Move Down`), and modal rule editing with syntax validation.
-- ⚠️ **Unsaved Changes Guard**: Prevents accidental data loss when navigating away or exiting the application with unsaved rules.
+- 🎵 **Now Playing Tab**: Real-time VRChat log monitor displaying active video playback status, track titles, artist metadata, progress, and direct stream control actions.
+- 🔌 **Active Connections View**: Table tracking active video stream socket connections with targeted connection severing (`Sever Connection`) to cut specific streams or all active playback.
 - 🎬 **Quick Video Player Toggle**: Dashboard card with a single toggle ("Disable Videoplayers" / "Enable Videoplayers") to immediately block or unblock all in-game video playback requests.
+- 📢 **Dismissable MOTD Announcements**: Top announcement banner for service updates with one-click dismiss (`X`) and hash-based update notifications.
 - 🛠️ **Unified Tools Status Card**: Dashboard indicator tracking runtime statuses for `yt-dlp`, `Deno`, and `FFmpeg` (`Up-To-Date`, `Shim`, `Outdated`, `Missing`).
+- 📂 **Quick Folder Access**: One-click button in Settings to open your configuration directory in your native file manager.
   
 <details>
 <summary><b>Details on original Plus features</b></summary>
