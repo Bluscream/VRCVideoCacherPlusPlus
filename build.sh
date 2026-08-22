@@ -17,6 +17,7 @@
 #   --start     start the deployed app through Steam and tail its log
 #   --restart   --stop and --start together
 #   --commit    commit the working tree      (-m MESSAGE, defaults to "Release vX.Y.Z")
+#               and tag it X.Y.Z when --bump ran
 #   --push      push the current branch and any tag created by --bump
 #   --release   create the GitHub release, attaching all four assets
 #
@@ -92,7 +93,7 @@ while [ $# -gt 0 ]; do
             COMMIT_MESSAGE="$2"; shift
             ;;
         -m=*|--message=*) COMMIT_MESSAGE="${1#*=}" ;;
-        -h|--help) sed -n '2,44p' "$0" | sed 's/^# \?//'; exit 0 ;;
+        -h|--help) sed -n '2,45p' "$0" | sed 's/^# \?//'; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; exit 2 ;;
     esac
     shift
@@ -133,6 +134,14 @@ read_version() {
 
 VERSION="$(read_version)"
 [ -n "$VERSION" ] || fail "could not read <Version> from ${CSPROJ}"
+
+# yt-dlp-stub.exe rebuilds non-deterministically: identical content, different bytes. Left
+# alone it lands in every release commit as meaningless churn. Recorded here so it can be
+# restored before committing — but only when it was already clean, so a genuine change to
+# the stub is never silently discarded.
+STUB="VRCVideoCacher/yt-dlp-stub.exe"
+STUB_WAS_CLEAN=false
+git -C "$SCRIPT_DIR" diff --quiet -- "$STUB" 2>/dev/null && STUB_WAS_CLEAN=true
 
 # A release is always the same four files. Checked as a set rather than trusted,
 # because the .crx silently does not get built when npx is unavailable — which would
@@ -192,7 +201,11 @@ if [ "$DO_BUMP" = true ]; then
     VERSION="$NEW_VERSION"
 fi
 
-TAG="v${VERSION}"
+# Tags in this repo are bare versions (2026.8.21), while release *titles* carry the v
+# (v2026.8.21). Keep both conventions — tagging v2026.8.22 next to 2026.8.21 would split
+# the history in two and break `releases/latest` ordering.
+TAG="${VERSION}"
+RELEASE_TITLE="v${VERSION}"
 
 # --- lint -------------------------------------------------------------------------------
 if [ "$DO_LINT" = true ]; then
@@ -342,10 +355,15 @@ fi
 # --- commit -----------------------------------------------------------------------------
 if [ "$DO_COMMIT" = true ]; then
     step "Committing"
+    if [ "$STUB_WAS_CLEAN" = true ] && ! git -C "$SCRIPT_DIR" diff --quiet -- "$STUB"; then
+        echo "Discarding rebuilt ${STUB} (byte churn, no content change)."
+        run git -C "$SCRIPT_DIR" checkout -- "$STUB"
+    fi
+
     if git -C "$SCRIPT_DIR" diff --quiet && git -C "$SCRIPT_DIR" diff --cached --quiet; then
         echo "Nothing to commit."
     else
-        MESSAGE="${COMMIT_MESSAGE:-Release ${TAG}}"
+        MESSAGE="${COMMIT_MESSAGE:-Release ${RELEASE_TITLE}}"
         run git -C "$SCRIPT_DIR" add -A
         run git -C "$SCRIPT_DIR" commit -m "$MESSAGE" || fail "commit failed"
     fi
@@ -393,7 +411,7 @@ if [ "$DO_RELEASE" = true ]; then
     require_assets
 
     run gh release create "$TAG" \
-        --title "$TAG" \
+        --title "$RELEASE_TITLE" \
         --generate-notes \
         "${RELEASE_ASSETS[@]}" \
         || fail "creating the release failed"
