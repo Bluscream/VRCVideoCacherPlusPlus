@@ -11,18 +11,23 @@
 #   --lint      locale check, extension check, strict compile, full test suite
 #   --build     publish yt-dlp-stub and VRCVideoCacher for Steam (Linux x64)
 #   --deploy    rsync the publish output into the Steam directory
-#   --restart   after deploying, restart the app through Steam and tail its log
-#               (requires --deploy explicitly; it will not imply one)
 #   --commit    commit the working tree      (-m MESSAGE, defaults to "Release vX.Y.Z")
 #   --push      push the current branch and any tag created by --bump
 #   --release   create the GitHub release for the current version (notes are generated;
 #               binaries are attached by the CI publish job, not from here)
 #
-#   --all       everything except --deploy and --restart, which are local-only
+#   --all       everything except --deploy, which is local-only
 #   -n|--dry-run  print each action instead of running the ones that change the world
 #
 # Running it with no arguments at all builds and deploys, which is what it always did.
 # Passing any flag turns that off, so nothing gets deployed unless you asked for it.
+#
+# Restarting the app is deliberately not one of the actions. It used to be --restart,
+# which killed whatever was running, relaunched through Steam and guessed at success
+# from a five-second sleep — too blunt for something you usually want to watch happen.
+# Start it yourself when you are ready:
+#
+#   steam steam://rungameid/4296960
 #
 # Everything machine-specific is an environment variable with the author's setup as the
 # default, so this is overridable rather than only working on one machine:
@@ -36,7 +41,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${VVC_TARGET_DIR:-/run/media/system/Data/Games/Steam/steamapps/common/VRCVideoCacher}"
 CONTAINER_NAME="${VVC_CONTAINER-arch}"
 TRIMMED="${VVC_TRIMMED:-0}"
-STEAM_APP_ID=4296960
 TMP_OUT="${SCRIPT_DIR}/output_steam_linux"
 CSPROJ="${SCRIPT_DIR}/VRCVideoCacher/VRCVideoCacher.csproj"
 
@@ -47,53 +51,41 @@ DO_DEPLOY=false
 DO_COMMIT=false
 DO_PUSH=false
 DO_RELEASE=false
-RESTART=false
 DRY_RUN=false
 COMMIT_MESSAGE=""
-ANY_ACTION=false
 ARG_COUNT=$#
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --bump)    DO_BUMP=true;    ANY_ACTION=true ;;
-        --lint)    DO_LINT=true;    ANY_ACTION=true ;;
-        --build)   DO_BUILD=true;   ANY_ACTION=true ;;
-        --deploy)  DO_DEPLOY=true;  ANY_ACTION=true ;;
-        --commit)  DO_COMMIT=true;  ANY_ACTION=true ;;
-        --push)    DO_PUSH=true;    ANY_ACTION=true ;;
-        --release) DO_RELEASE=true; ANY_ACTION=true ;;
+        --bump)    DO_BUMP=true ;;
+        --lint)    DO_LINT=true ;;
+        --build)   DO_BUILD=true ;;
+        --deploy)  DO_DEPLOY=true ;;
+        --commit)  DO_COMMIT=true ;;
+        --push)    DO_PUSH=true ;;
+        --release) DO_RELEASE=true ;;
         --all)
             DO_BUMP=true; DO_LINT=true; DO_BUILD=true
             DO_COMMIT=true; DO_PUSH=true; DO_RELEASE=true
-            ANY_ACTION=true
             ;;
-        --restart) RESTART=true ;;
         -n|--dry-run) DRY_RUN=true ;;
         -m|--message)
             [ $# -ge 2 ] || { echo "error: $1 needs a message" >&2; exit 2; }
             COMMIT_MESSAGE="$2"; shift
             ;;
         -m=*|--message=*) COMMIT_MESSAGE="${1#*=}" ;;
-        -h|--help) sed -n '2,32p' "$0" | sed 's/^# \?//'; exit 0 ;;
+        -h|--help) sed -n '2,37p' "$0" | sed 's/^# \?//'; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; exit 2 ;;
     esac
     shift
 done
 
-# Backwards compatibility: bare ./build.sh is a deploy. Deliberately keyed on there being
-# no arguments at all rather than on "no action flags" — under the looser rule
-# `./build.sh --restart` selected no actions, fell through to here, and silently built,
-# deployed and restarted. A modifier must never be able to turn into a deploy by itself.
+# Backwards compatibility: bare ./build.sh is a deploy. Keyed on there being no arguments
+# at all rather than on "no action flags selected", so that a flag which selects no action
+# can never fall through to here and deploy something nobody asked to deploy.
 if [ "$ARG_COUNT" -eq 0 ]; then
     DO_BUILD=true
     DO_DEPLOY=true
-fi
-
-# --restart without --deploy would restart the app onto whatever is already installed,
-# which looks like a successful deploy of code that was never copied. Refuse instead.
-if [ "$RESTART" = true ] && [ "$DO_DEPLOY" = false ]; then
-    echo "error: --restart needs --deploy (try: --build --deploy --restart)" >&2
-    exit 2
 fi
 
 step() { echo; echo "=== $* ==="; }
@@ -257,41 +249,4 @@ if [ "$DO_RELEASE" = true ]; then
         --title "$TAG" \
         --generate-notes \
         || fail "creating the release failed"
-fi
-
-# --- restart ----------------------------------------------------------------------------
-if [ "$RESTART" = true ]; then
-    step "(Re)starting VRCVideoCacher"
-    # Match the deployed binary by full path. A bare `pkill -f VRCVideoCacher` also matches
-    # this script, an editor with the project open, or a shell sitting in the source tree.
-    run pkill -9 -f "^${TARGET_DIR}/VRCVideoCacher" 2>/dev/null || true
-    sleep 1
-    if [ "$DRY_RUN" = false ]; then
-        (nohup steam "steam://rungameid/${STEAM_APP_ID}" >/dev/null 2>&1 \
-            || nohup xdg-open "steam://rungameid/${STEAM_APP_ID}" >/dev/null 2>&1 &)
-        echo "VRCVideoCacher launched via Steam."
-
-        step "Waiting 5s for process status & logs..."
-        sleep 5
-        LOG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/VRCVideoCacher/Logs"
-        LOG_FILE=$(ls -t "${LOG_DIR}"/VRCVideoCacher*.log 2>/dev/null | head -n 1 || true)
-        if [ -n "${LOG_FILE}" ] && [ -f "${LOG_FILE}" ]; then
-            step "Last 25 log lines (${LOG_FILE})"
-            tail -n 25 "${LOG_FILE}"
-        fi
-
-        step "Process Status & Diagnostic Check"
-        PIDS=$(pgrep -f "^${TARGET_DIR}/VRCVideoCacher" || true)
-        if [ -n "${PIDS}" ]; then
-            echo "VRCVideoCacher is RUNNING (PIDs: ${PIDS})"
-            ps -p "$(echo "${PIDS}" | tr '\n' ',' | sed 's/,$//')" -o pid,user,%cpu,%mem,stat,start,time,command
-        else
-            echo "WARNING: VRCVideoCacher process is NOT running (Exited or Crashed after 5s)!"
-            CRASH_REPORT="${XDG_CONFIG_HOME:-${HOME}/.config}/VRCVideoCacher/CRASH_REPORT.txt"
-            if [ -f "${CRASH_REPORT}" ]; then
-                step "Found CRASH_REPORT.txt"
-                cat "${CRASH_REPORT}"
-            fi
-        fi
-    fi
 fi
