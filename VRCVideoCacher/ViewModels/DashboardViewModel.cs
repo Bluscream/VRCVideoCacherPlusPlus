@@ -58,9 +58,30 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty]
     private string? _motd;
 
-    public bool HasMotd => !string.IsNullOrWhiteSpace(Motd);
+    public bool HasMotd =>
+        !string.IsNullOrWhiteSpace(Motd) &&
+        ConfigManager.Config.DismissedMotdHash != ComputeMotdHash(Motd);
 
     partial void OnMotdChanged(string? value) => OnPropertyChanged(nameof(HasMotd));
+
+    private static string ComputeMotdHash(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        var bytes = System.Text.Encoding.UTF8.GetBytes(text);
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
+        return Convert.ToHexString(hash);
+    }
+
+    [RelayCommand]
+    private void DismissMotd()
+    {
+        if (!string.IsNullOrWhiteSpace(Motd))
+        {
+            ConfigManager.Config.DismissedMotdHash = ComputeMotdHash(Motd);
+            ConfigManager.TrySaveConfig();
+            OnPropertyChanged(nameof(HasMotd));
+        }
+    }
 
     public DashboardViewModel()
     {

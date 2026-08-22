@@ -27,12 +27,27 @@
                 <Setter Property="Foreground" Value="#b9d0ff"/>
             </Style>
         </Border.Styles>
-        <TextBlock
-            Foreground="White"
-            ctl:MarkdownText.Text="{Binding Motd}"
-            TextWrapping="Wrap"
-            HorizontalAlignment="Center"
-            FontWeight="Medium" />
+        <Grid ColumnDefinitions="*, Auto">
+            <TextBlock
+                Grid.Column="0"
+                Foreground="White"
+                ctl:MarkdownText.Text="{Binding Motd}"
+                TextWrapping="Wrap"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontWeight="Medium" />
+            <Button
+                Grid.Column="1"
+                Command="{Binding DismissMotdCommand}"
+                Background="Transparent"
+                BorderThickness="0"
+                Padding="4"
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Dismiss">
+                <mi:MaterialIcon Kind="Close" Width="16" Height="16" Foreground="White"/>
+            </Button>
+        </Grid>
     </Border>
 
     <ScrollViewer Grid.Row="1">

@@ -208,6 +208,7 @@ public class ConfigModel
     // UI state
     public bool HasShownTrayNotice = false;
     public bool HasShownSharedConfigNotice = false;
+    public string DismissedMotdHash = string.Empty;
 
     // PlusPlus settings (flattened)
     public int CacheDownloadRateLimitMBs = 0; // 0 = unlimited
