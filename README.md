@@ -26,7 +26,7 @@ Download or clone this repo so you have the `BrowserExtension/` folder locally.
 **Firefox:**
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click **Load Temporary Add-on…** and select `BrowserExtension/firefox/manifest.json`
-3. Note: temporary add-ons are removed when Firefox closes and must be re-loaded each time. For a persistent install, use [Firefox Developer Edition or Nightly](https://www.mozilla.org/firefox/channel/desktop/) with `xpinstall.signatures.required` set to `false` in `about:config`, zip the `BrowserExtension/firefox/` folder contents, and install the zip via `about:addons`
+3. Note: temporary add-ons are removed when Firefox closes and must be re-loaded each time. For a persistent install, use [Firefox Developer Edition or Nightly](https://www.mozilla.org/firefox/channel/desktop/) with both `xpinstall.signatures.required` (`about:config#xpinstall.signatures.required`) and `extensions.langpacks.signatures.required` (`about:config#extensions.langpacks.signatures.required`) set to `false` in `about:config`, zip the `BrowserExtension/firefox/` folder contents, and install the zip via `about:addons`
 
 </details>
 

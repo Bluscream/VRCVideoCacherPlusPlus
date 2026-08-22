@@ -72,7 +72,5 @@ else
     echo "WARNING: npx not found, skipping CRX packaging" >&2
 fi
 
-# Clean up temporary browser extension zips to keep only xpi/crx in release assets
-rm -f "${DIST_DIR}"/VRCVideoCacherPlusPlus-*.zip
-
+# Retain extension .zip packages in release assets alongside .xpi and .crx
 echo "=== Done ==="

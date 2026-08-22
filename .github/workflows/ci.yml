@@ -58,8 +58,13 @@ jobs:
           -c Release -r ${{ matrix.rid }}
           -o out/${{ matrix.rid }}
 
+      - name: Package Zip Archive
+        run: |
+          cd out/${{ matrix.rid }}
+          zip -r ../../VRCVideoCacher-${{ matrix.rid }}.zip .
+
       - uses: actions/upload-artifact@v4
         with:
-          name: VRCVideoCacher-${{ matrix.rid }}
-          path: out/${{ matrix.rid }}
+          name: VRCVideoCacher-${{ matrix.rid }}.zip
+          path: VRCVideoCacher-${{ matrix.rid }}.zip
           retention-days: 7

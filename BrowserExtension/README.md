@@ -43,5 +43,4 @@ had gone stale against the source, and were being bundled *inside* newly built p
 
 **Chrome:** `chrome://extensions` → Developer mode → Load unpacked → pick `chrome/`.
 
-**Firefox:** `about:debugging` → This Firefox → Load Temporary Add-on → pick
-`firefox/manifest.json`. Temporary add-ons are removed when Firefox closes.
+**Firefox:** `about:debugging` → This Firefox → Load Temporary Add-on → pick `firefox/manifest.json`. Temporary add-ons are removed when Firefox closes. For permanent unsigned installation in Firefox Developer Edition / Nightly, set both `xpinstall.signatures.required` (`about:config#xpinstall.signatures.required`) and `extensions.langpacks.signatures.required` (`about:config#extensions.langpacks.signatures.required`) to `false` in `about:config`.
