@@ -19,14 +19,14 @@ The VRCVideoCacherPlusPlus extensions ([BrowserExtension/](BrowserExtension/)) s
 Download or clone this repo so you have the `BrowserExtension/` folder locally.
 
 **Chrome (and Chromium-based browsers like Edge, Brave):**
-1. Open `chrome://extensions`
+1. Open [`chrome://extensions`](chrome://extensions)
 2. Enable **Developer mode** (top right)
 3. Click **Load unpacked** and select the `BrowserExtension/chrome/` folder OR drag and drop the `BrowserExtension/chrome/` into the extensions window
 
 **Firefox:**
-1. Open `about:debugging#/runtime/this-firefox`
+1. Open [`about:debugging#/runtime/this-firefox`](about:debugging#/runtime/this-firefox)
 2. Click **Load Temporary Add-on…** and select `BrowserExtension/firefox/manifest.json`
-3. Note: temporary add-ons are removed when Firefox closes and must be re-loaded each time. For a persistent install, use [Firefox Developer Edition or Nightly](https://www.mozilla.org/firefox/channel/desktop/) with both `xpinstall.signatures.required` (`about:config#xpinstall.signatures.required`) and `extensions.langpacks.signatures.required` (`about:config#extensions.langpacks.signatures.required`) set to `false` in `about:config`, zip the `BrowserExtension/firefox/` folder contents, and install the zip via `about:addons`
+3. Note: temporary add-ons are removed when Firefox closes and must be re-loaded each time. For a persistent install, use [Firefox Developer Edition or Nightly](https://www.mozilla.org/firefox/channel/desktop/) with both [`xpinstall.signatures.required`](about:config#xpinstall.signatures.required) and [`extensions.langpacks.signatures.required`](about:config#extensions.langpacks.signatures.required) set to `false` in [`about:config`](about:config), zip the `BrowserExtension/firefox/` folder contents, and install the zip via [`about:addons`](about:addons)
 
 </details>
 
