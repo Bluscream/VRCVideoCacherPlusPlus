@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 using Serilog;
 using VRCVideoCacher.Models;
 
@@ -25,7 +25,7 @@ public class PlusConfigManager
         try
         {
             if (File.Exists(ConfigFilePath))
-                loaded = JsonConvert.DeserializeObject<PlusConfigModel>(File.ReadAllText(ConfigFilePath));
+                loaded = Utils.Json.Deserialize<PlusConfigModel>(File.ReadAllText(ConfigFilePath));
         }
         catch (Exception ex)
         {
@@ -143,26 +143,33 @@ public class PlusConfigManager
 
         try
         {
-            var json = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(configPath));
-            if (json == null)
+            // Read as a document rather than into a model: these keys no longer exist on
+            // ConfigModel, so there is nothing to deserialize into. (This was
+            // Dictionary<string, object>, which under Newtonsoft yielded boxed primitives
+            // that Convert.ToInt32 accepted. System.Text.Json yields JsonElement instead,
+            // which Convert would throw on, so each value is read through its own accessor.)
+            using var document = JsonDocument.Parse(File.ReadAllText(configPath));
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
                 return;
 
-            if (json.TryGetValue("CacheDownloadRateLimitMBs", out var rate))
-                Config.CacheDownloadRateLimitMBs = Convert.ToInt32(rate);
-            if (json.TryGetValue("CacheDownloadIdleSeconds", out var idle))
-                Config.CacheDownloadIdleSeconds = Convert.ToInt32(idle);
-            if (json.TryGetValue("CacheYouTubePreferVp9", out var vp9))
-                Config.CacheYouTubePreferVp9 = Convert.ToBoolean(vp9);
-            if (json.TryGetValue("UriRules", out var rulesObj) && rulesObj != null)
+            if (root.TryGetProperty("CacheDownloadRateLimitMBs", out var rate) && rate.TryGetInt32(out var rateValue))
+                Config.CacheDownloadRateLimitMBs = rateValue;
+
+            if (root.TryGetProperty("CacheDownloadIdleSeconds", out var idle) && idle.TryGetInt32(out var idleValue))
+                Config.CacheDownloadIdleSeconds = idleValue;
+
+            if (root.TryGetProperty("CacheYouTubePreferVp9", out var vp9) &&
+                vp9.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                Config.CacheYouTubePreferVp9 = vp9.GetBoolean();
+
+            if (root.TryGetProperty("UriRules", out var rules) && rules.ValueKind == JsonValueKind.Array)
             {
-                var rulesJson = rulesObj.ToString();
-                if (!string.IsNullOrWhiteSpace(rulesJson))
-                {
-                    var migratedRules = JsonConvert.DeserializeObject<List<UriRule>>(rulesJson);
-                    if (migratedRules != null && migratedRules.Count > 0)
-                        Config.UriRules = migratedRules;
-                }
+                var migratedRules = Utils.Json.Deserialize<List<UriRule>>(rules.GetRawText());
+                if (migratedRules is { Count: > 0 })
+                    Config.UriRules = migratedRules;
             }
+
             Log.Information("Migrated Plus settings from main Config.json.");
         }
         catch (Exception ex)
@@ -173,7 +180,7 @@ public class PlusConfigManager
 
     public static void TrySaveConfig()
     {
-        var newConfig = JsonConvert.SerializeObject(Config, Formatting.Indented);
+        var newConfig = Utils.Json.Serialize(Config);
         var oldConfig = File.Exists(ConfigFilePath) ? File.ReadAllText(ConfigFilePath) : string.Empty;
         if (newConfig == oldConfig)
             return;
